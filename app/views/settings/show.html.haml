@@ -1,0 +1,35 @@
+- provide(:title, t('settings'))
+= render 'layouts/pie_header'
+.c_customer.afclr
+  .wrapper
+    .re_main.afclr
+      .ab_head.afclr
+        %h1= t('settings_title')
+      .in_iner_pag.afclr
+        %p
+          %input#proportions{:type => 'text', :readonly => 'true'}
+          #slider-range
+:javascript
+  $(document).ready(function(e) {
+    $( "#slider-range" ).slider({
+      range: true,
+      min: 0,
+      max: 100,
+      values: [#{@setting.e_priority}, 100 - #{@setting.g_priority}],
+      slide: function(event, ui) {
+        var e = ui.values[0];
+        var g = 100 - ui.values[1];
+        var s = 100 - e - g;
+        
+        $("#proportions" ).val("E " + e + "%         S " + s + "%         G " + g + "%");
+        var data = {'setting': {'e_priority': e, 's_priority': s, 'g_priority': g }};
+
+        jQuery.ajax({url:'/settings/#{@setting.id}.js',
+                     data: data,
+                     type: "PUT",
+                     error: function() { alert('Oh noes!'); }, 
+                     async: false}); 
+      }
+    });
+    $("#proportions").val("E #{@setting.e_priority}%         S #{@setting.s_priority}%         G #{@setting.g_priority}%");
+  });

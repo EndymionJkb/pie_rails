@@ -16,4 +16,16 @@ class User < ApplicationRecord
   # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable
+         
+  DEFAULT_E = 34
+  DEFAULT_S = 33
+  DEFAULT_G = 33
+  
+  has_one :setting
+  
+  def ensure_setting
+    if setting.nil?
+      setting = self.create_setting(:e_priority => 33, :s_priority => 33, :g_priority => 33)
+    end
+  end
 end

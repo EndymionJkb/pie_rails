@@ -15,4 +15,5 @@
 //= require popper
 //= require bootstrap
 //= require activestorage
+//= require jquery-ui
 //= require_tree .
