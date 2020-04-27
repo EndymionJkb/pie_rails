@@ -1,0 +1,20 @@
+!!!
+%html{:lang => I18n.locale}
+  %head
+    = render 'layouts/pie_shim'
+    %meta{:name => 'description', :content => 'Smart Pies' }
+    %meta{'http-equiv' => 'Content-Type', :content => 'text/html; charset=utf-8'}/
+    %title= full_title(yield(:title))
+    = csrf_meta_tags
+    = csp_meta_tag
+
+    = stylesheet_link_tag    "application", media: "all"
+    = javascript_include_tag "application"
+    = favicon_link_tag 
+  %body
+    - flash.each do |key, value|
+      .alert-wrapper
+        %div{:class => "alert alert-#{key}"}
+          %a.close{"data-dismiss" => "alert"} ×
+          = content_tag(:div, value)
+    = yield

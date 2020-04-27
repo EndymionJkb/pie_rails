@@ -1,0 +1,25 @@
+.f_footer.afclr
+  .wrapper
+    .f_main.afclr
+      .f_logo.afclr
+        = image_tag 'cca_logo.png'
+      .f_menu.afclr
+        %ul.f_list
+          %li= link_to t('home'), root_path
+          %li= link_to t('about'), root_path #TODO about_path
+          %li= link_to t('help'), root_path #TODO help_path
+          %li= link_to t('contact'), root_path #TODO contact_path
+          %li= link_to t('privacy_policy'), root_path #TODO privacy_path
+      .f_social.afclr
+        = link_to 'http://www.facebook.com' do
+          %i.fa.fa-facebook{'aria-hidden' => "true"}
+        = link_to 'http://www.pinterest.com' do
+          %i.fa.fa-pinterest-p{'aria-hidden' => "true"}
+        = link_to 'http://www.twitter.com' do
+          %i.fa.fa-twitter{'aria-hidden' => "true"}
+        = link_to 'http://www.instagram.com' do
+          %i.fa.fa-instagram{'aria-hidden' => "true"}
+.c_copy.afclr
+  .wrapper
+    .c_cpy.afclr
+      Copyright 2020

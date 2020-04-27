@@ -1,0 +1,24 @@
+.r_header1.afclr
+  .wrapper.afclr
+    .c_whead.afclr
+      .c_logo
+        = link_to image_tag('cca_logo.png'), root_path
+      .site-menu.afclr
+        %a.menu_expand.afclr{:href => "javascript:void(1);"}
+        %ul.nav-menu.afclr
+          - if signed_in?
+            %li= link_to t('pies'), root_path #TODO contact_path
+            %li= link_to t('stocks'), root_path #TODO contact_path
+            %li= link_to t('etfs'), root_path #TODO contact_path
+            %li= link_to t('settings'), root_path #TODO contact_path
+          - else
+            %li= link_to t('home'), root_path
+            %li= link_to t('about'), root_path #TODO about_path
+            %li= link_to t('help'), root_path #TODO help_path
+            %li= link_to t('contact'), root_path #TODO contact_path
+      .r_hright
+        %ul.h_hrih.afclr
+          - if signed_in?
+            %li= link_to t('sign_out'), destroy_user_session_path, :method => :delete
+          - else
+            %li= link_to t('sign_in'), new_user_session_path

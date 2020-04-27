@@ -10,10 +10,38 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_04_26_220711) do
+ActiveRecord::Schema.define(version: 2020_04_26_222101) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "etfs", force: :cascade do |t|
+    t.string "ticker", limit: 32, null: false
+    t.string "fund_name", limit: 128, null: false
+    t.decimal "forecast_e", precision: 8, scale: 4
+    t.decimal "forecast_s", precision: 8, scale: 4
+    t.decimal "forecast_g", precision: 8, scale: 4
+    t.decimal "esg_performance", precision: 8, scale: 4
+    t.decimal "alpha", precision: 10, scale: 6
+    t.decimal "benchmark", precision: 10, scale: 6
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "stocks", force: :cascade do |t|
+    t.string "company_name", limit: 128, null: false
+    t.string "sector", limit: 64, null: false
+    t.decimal "forecast_e", precision: 8, scale: 4
+    t.decimal "forecast_s", precision: 8, scale: 4
+    t.decimal "forecast_g", precision: 8, scale: 4
+    t.decimal "alpha", precision: 8, scale: 4
+    t.float "m1_return"
+    t.float "m3_return"
+    t.float "m6_return"
+    t.float "y1_return"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
 
   create_table "users", force: :cascade do |t|
     t.string "email", default: "", null: false
