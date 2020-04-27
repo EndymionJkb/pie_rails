@@ -7,4 +7,13 @@ en:
   sign_in: 'Sign in'
   settings: 'Settings'
   pies: 'My Pie'
+  pie_heading: "Edit my Pie's Allocation"
   settings_title: 'ESG Settings'
+  pct_gold: '% Gold'
+  pct_crypto: '% Cryptocurrency'
+  pct_cash: '% Cash (Stable Coins)'
+  pct_equities: '% Equities'
+  update_pie: 'Update Allocation'
+  total: 'Total'
+  reset: 'Reset to default'
+  name: 'Pie name'

@@ -4,4 +4,11 @@ Rails.application.routes.draw do
   root :to => 'static_pages#home'
   
   resources :settings, :only => [:show, :update]
+  resources :pies, :only => [:show, :edit, :update] do
+    put 'reset', :on => :member
+  end
+  
+  # Don't want to update these in the pie form without submitting
+  #resources :cryptos, :only => [:update]
+  #resources :stable_coins, :only => [:update]
 end

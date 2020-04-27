@@ -1,0 +1,10 @@
+- provide(:title, t('pies'))
+= render 'layouts/pie_header'
+.c_customer.afclr
+  .wrapper
+    .re_main.afclr
+      .ab_head.afclr
+        %h1= t('pies')
+      .in_iner_pag.afclr
+        %p= image_tag 'pie_placeholder.jpg'
+        %p= link_to 'Edit my Allocation', edit_py_path(1)

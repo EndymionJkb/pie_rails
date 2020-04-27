@@ -10,10 +10,20 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_04_27_004239) do
+ActiveRecord::Schema.define(version: 2020_04_27_031340) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "cryptos", force: :cascade do |t|
+    t.bigint "pie_id"
+    t.integer "pct_curr1"
+    t.integer "pct_curr2"
+    t.integer "pct_curr3"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["pie_id"], name: "index_cryptos_on_pie_id"
+  end
 
   create_table "etfs", force: :cascade do |t|
     t.string "ticker", limit: 32, null: false
@@ -28,6 +38,18 @@ ActiveRecord::Schema.define(version: 2020_04_27_004239) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "pies", force: :cascade do |t|
+    t.bigint "user_id"
+    t.integer "pct_gold"
+    t.integer "pct_crypto"
+    t.integer "pct_cash"
+    t.integer "pct_equities"
+    t.string "name", limit: 32
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_pies_on_user_id"
+  end
+
   create_table "settings", force: :cascade do |t|
     t.bigint "user_id"
     t.integer "e_priority", null: false
@@ -36,6 +58,16 @@ ActiveRecord::Schema.define(version: 2020_04_27_004239) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["user_id"], name: "index_settings_on_user_id"
+  end
+
+  create_table "stable_coins", force: :cascade do |t|
+    t.bigint "pie_id"
+    t.integer "pct_curr1"
+    t.integer "pct_curr2"
+    t.integer "pct_curr3"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["pie_id"], name: "index_stable_coins_on_pie_id"
   end
 
   create_table "stocks", force: :cascade do |t|

@@ -1,0 +1,108 @@
+- provide(:title, t('pies'))
+= render 'layouts/pie_header'
+.c_customer.afclr
+  .wrapper
+    .re_main.afclr
+      .ab_head.afclr
+        %h1= t('pie_heading')
+      .in_iner_pag.afclr
+        .row
+          .col-sm-3
+            = button_to t('reset'), reset_py_path(@pie), :class => 'btn btn-secondary', :method => :put
+            %br
+            = form_for @pie do |f|
+              = f.fields_for :crypto, f.object.crypto do |cf|
+                = cf.hidden_field :pct_curr1
+                = cf.hidden_field :pct_curr2
+                = cf.hidden_field :pct_curr3
+              = f.fields_for :stable_coin, f.object.stable_coin do |sf|
+                = sf.hidden_field :pct_curr1
+                = sf.hidden_field :pct_curr2
+                = sf.hidden_field :pct_curr3
+              = f.label :name, t('name')
+              = f.text_field :name
+              %br
+              = f.label :pct_gold, t('pct_gold')
+              = f.number_field :pct_gold, :size => 2, :maxlength => 3, :min => 0, :max => 100, :class => 'short_input', :onchange => "update_pie();"
+              %br
+              = f.label :pct_crypto, t('pct_crypto')
+              = f.number_field :pct_crypto, :size => 2, :maxlength => 3, :min => 0, :max => 100, :class => 'short_input', :onchange => "update_pie();"
+              %br
+              = f.label :pct_cash, t('pct_cash')
+              = f.number_field :pct_cash, :size => 2, :maxlength => 3, :min => 0, :max => 100, :class => 'short_input', :onchange => "update_pie();"
+              %br
+              = f.label :pct_equities, t('pct_equities')
+              = f.number_field :pct_equities, :size => 2, :maxlength => 3, :min => 0, :max => 100, :class => 'short_input', :onchange => "update_pie();"
+              %br
+              = label_tag t('total')
+              = number_field_tag t('total'), nil, {:disabled => true, :class => 'short_input', :id => 'pie_total'}
+              %br
+              = f.submit t('update_pie'), :class => 'btn btn-primary', :id => 'submit_pie'
+          .col-sm-9
+            %p{:style => 'margin-top:100px'}
+              %input#crypto_props{:type => 'text', :readonly => 'true', :style => 'width:450px;'}
+              #crypto_slider{:style => "margin-top:-20px; width:50%;"}
+            %p{:style => 'margin-top:-20px'}
+              %input#cash_props{:type => 'text', :readonly => 'true', :style => 'width:450px;'}
+              #cash_slider{:style => "margin-top:-20px; width:50%;"}
+
+:javascript
+  $(document).ready(function(e) {
+    update_pie();
+
+    $("#crypto_slider").slider({
+      range: true,
+      min: 0,
+      max: 100,
+      values: [#{@pie.crypto.pct_curr1}, 100 - #{@pie.crypto.pct_curr3}],
+      slide: function(event, ui) {
+        var curr1 = ui.values[0];
+        var curr3 = 100 - ui.values[1];
+        var curr2 = 100 - curr1 - curr3;
+        
+        $("#crypto_props" ).val("#{@pie.crypto.currency_name(0)} " + curr1 + 
+                                "%         #{@pie.crypto.currency_name(1)} " + curr2 +
+                                "%         #{@pie.crypto.currency_name(2)} " + curr3 + "%");
+        $("#pie_crypto_attributes_pct_curr1").val(curr1);
+        $("#pie_crypto_attributes_pct_curr2").val(curr2);
+        $("#pie_crypto_attributes_pct_curr3").val(curr3);
+        /*Don't change unless submitted!
+          var data = {'crypto': {'pct_curr1': curr1, 'pct_curr2': curr2, 'pct_curr3': curr3 }};
+  
+        jQuery.ajax({url:'/cryptos/#{@pie.crypto.id}.js',
+                     data: data,
+                     type: "PUT",
+                     error: function() { alert('Oh noes!'); }, 
+                     async: false}); */
+      }
+    });
+    $("#crypto_props").val("#{@pie.crypto.currency_name(0)} #{@pie.crypto.pct_curr1}%         #{@pie.crypto.currency_name(1)} #{@pie.crypto.pct_curr2}%         #{@pie.crypto.currency_name(2)} #{@pie.crypto.pct_curr3}%");
+
+    $("#cash_slider").slider({
+      range: true,
+      min: 0,
+      max: 100,
+      values: [#{@pie.stable_coin.pct_curr1}, 100 - #{@pie.stable_coin.pct_curr3}],
+      slide: function(event, ui) {
+        var curr1 = ui.values[0];
+        var curr3 = 100 - ui.values[1];
+        var curr2 = 100 - curr1 - curr3;
+        
+        $("#cash_props" ).val("#{@pie.stable_coin.currency_name(0)} " + curr1 + 
+                              "%         #{@pie.stable_coin.currency_name(1)} " + curr2 +
+                              "%         #{@pie.stable_coin.currency_name(2)} " + curr3 + "%");
+        $("#pie_stable_coin_attributes_pct_curr1").val(curr1);
+        $("#pie_stable_coin_attributes_pct_curr2").val(curr2);
+        $("#pie_stable_coin_attributes_pct_curr3").val(curr3);
+        /* Don't change unless submitted! 
+           var data = {'stable_coin': {'pct_curr1': curr1, 'pct_curr2': curr2, 'pct_curr3': curr3 }};
+  
+        jQuery.ajax({url:'/stable_coins/#{@pie.stable_coin.id}.js',
+                     data: data,
+                     type: "PUT",
+                     error: function() { alert('Oh noes!'); }, 
+                     async: false}); */
+      }
+    });
+    $("#cash_props").val("#{@pie.stable_coin.currency_name(0)} #{@pie.stable_coin.pct_curr1}%         #{@pie.stable_coin.currency_name(1)} #{@pie.stable_coin.pct_curr2}%         #{@pie.stable_coin.currency_name(2)} #{@pie.stable_coin.pct_curr3}%");
+  });
