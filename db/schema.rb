@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_04_27_031340) do
+ActiveRecord::Schema.define(version: 2020_04_27_211737) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -26,6 +26,8 @@ ActiveRecord::Schema.define(version: 2020_04_27_031340) do
   end
 
   create_table "etfs", force: :cascade do |t|
+    t.bigint "cca_id", null: false
+    t.date "run_date", null: false
     t.string "ticker", limit: 32, null: false
     t.string "fund_name", limit: 128, null: false
     t.decimal "forecast_e", precision: 8, scale: 4
@@ -38,6 +40,13 @@ ActiveRecord::Schema.define(version: 2020_04_27_031340) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "etfs_pies", id: false, force: :cascade do |t|
+    t.bigint "pie_id"
+    t.bigint "etf_id"
+    t.index ["etf_id"], name: "index_etfs_pies_on_etf_id"
+    t.index ["pie_id"], name: "index_etfs_pies_on_pie_id"
+  end
+
   create_table "pies", force: :cascade do |t|
     t.bigint "user_id"
     t.integer "pct_gold"
@@ -48,6 +57,13 @@ ActiveRecord::Schema.define(version: 2020_04_27_031340) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["user_id"], name: "index_pies_on_user_id"
+  end
+
+  create_table "pies_stocks", id: false, force: :cascade do |t|
+    t.bigint "pie_id"
+    t.bigint "stock_id"
+    t.index ["pie_id"], name: "index_pies_stocks_on_pie_id"
+    t.index ["stock_id"], name: "index_pies_stocks_on_stock_id"
   end
 
   create_table "settings", force: :cascade do |t|
@@ -71,6 +87,8 @@ ActiveRecord::Schema.define(version: 2020_04_27_031340) do
   end
 
   create_table "stocks", force: :cascade do |t|
+    t.bigint "cca_id", null: false
+    t.date "run_date", null: false
     t.string "company_name", limit: 128, null: false
     t.string "sector", limit: 64, null: false
     t.decimal "forecast_e", precision: 8, scale: 4

@@ -1,0 +1,25 @@
+= link_to t('show_stocks'), edit_allocation_py_path(@pie), :class => 'btn btn-secondary'
+%br
+%br
+= render :partial => 'shared/pagination', :locals => {:data => etfs, :name => 'ETF'}
+%table.table.table-striped
+  %caption= t('check_add', :max_equities => Pie::MAX_EQUITIES)
+  %tr
+    %th
+    %th Ticker
+    %th Fund
+    %th E
+    %th S
+    %th G
+    %th Alpha
+    %th Performance
+  - @etfs.each do |etf|
+    %tr
+      %td= check_box_tag "add_etf_#{etf.id}", '1', @held_etf_ids.include?(etf.id), :disabled => @held_etf_ids.include?(etf.id)
+      %td= etf.ticker
+      %td= etf.fund_name
+      %td= etf.forecast_e
+      %td= etf.forecast_s
+      %td= etf.forecast_g
+      %td= etf.alpha
+      %td= etf.benchmark

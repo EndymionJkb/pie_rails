@@ -9,3 +9,15 @@
   display: inline-block;
   width: 50px
 }
+
+table caption {
+  caption-side: top;
+}
+
+.alert-wrapper {
+  position: absolute;
+  top: 111px;
+  left: 50px;
+  width:50%;
+  background-color: skyblue;
+}

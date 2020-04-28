@@ -1,6 +1,8 @@
 class CreateStocks < ActiveRecord::Migration[5.2]
   def change
     create_table :stocks do |t|
+      t.bigint :cca_id, :null => false
+      t.date :run_date, :null => false
       t.string :company_name, :limit => 128, :null => false
       t.string :sector, :limit => 64, :null => false
       t.numeric :forecast_e, :precision => 8, :scale => 4
@@ -14,5 +16,7 @@ class CreateStocks < ActiveRecord::Migration[5.2]
 
       t.timestamps
     end
+    
+    add_index :stocks, [:cca_id, :run_date], :unique => true
   end
 end

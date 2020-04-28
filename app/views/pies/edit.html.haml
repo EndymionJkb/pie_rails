@@ -39,12 +39,14 @@
               %br
               = f.submit t('update_pie'), :class => 'btn btn-primary', :id => 'submit_pie'
           .col-sm-9
-            %p{:style => 'margin-top:100px'}
+            %p{:style => 'margin-top:90px'}
               %input#crypto_props{:type => 'text', :readonly => 'true', :style => 'width:450px;'}
               #crypto_slider{:style => "margin-top:-20px; width:50%;"}
             %p{:style => 'margin-top:-20px'}
               %input#cash_props{:type => 'text', :readonly => 'true', :style => 'width:450px;'}
               #cash_slider{:style => "margin-top:-20px; width:50%;"}
+            %p{:style => 'margin-top:-30px'}
+              = link_to 'Edit Equity Allocation', edit_allocation_py_path(@pie)
 
 :javascript
   $(document).ready(function(e) {

@@ -23,7 +23,24 @@ class StableCoin < ApplicationRecord
                             :greater_than_or_equal_to => 0, :less_than_or_equal_to => 100
 
   def currency_name(idx)
-    SUPPORTED_CURRENCIES[idx]
+    if [0,1,2].include?(idx)
+      SUPPORTED_CURRENCIES[idx]
+    else
+      raise "Invalid currency index #{idx}"
+    end
+  end
+
+  def currency_pct(idx)
+    case idx
+      when 0
+        self.pct_curr1
+      when 1
+        self.pct_curr2
+      when 2
+        self.pct_curr3
+      else
+        raise 'Invalid currency index'
+    end
   end
   
   def reset

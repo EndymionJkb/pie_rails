@@ -1,0 +1,32 @@
+- provide(:title, t('allocation'))
+= render 'layouts/pie_header'
+.c_customer.afclr
+  .wrapper
+    .re_main.afclr
+      .ab_head.afclr
+        %h1= t('allocation')
+      .in_iner_pag.afclr
+        = form_with :url => update_allocation_py_path(@pie), :method => :put, :data => {:remote => false} do |f|
+          .row
+            .col-sm-3
+              %h3= t('current_allocation')
+              - if @current_alloc.empty?
+                = t('none_selected')
+              - else
+                %em= t('check_remove')
+                %ul
+                  - @current_alloc.each do |c|
+                    %li
+                      - if 'Stock' == c.class.name
+                        = render :partial => 'stock_holding', :locals => {:stock => c}
+                      - else
+                        = render :partial => 'etf_holding', :locals => {:etf => c}
+              %br
+              %br
+              = f.submit t('update_allocation'), :class => 'btn btn-primary'
+              = link_to t('done'), py_path(@pie), :class => 'btn btn-primary'
+            .col-sm-9
+              - if @show_etfs
+                = render :partial => 'etfs', :locals => {:etfs => @etfs}
+              - else
+                = render :partial => 'stocks', :locals => {:stocks => @stocks}

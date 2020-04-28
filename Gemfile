@@ -20,6 +20,7 @@ gem 'jquery-rails', '4.3.5'
 gem 'jquery-ui-rails', '6.0.1'
 gem 'bootstrap', '4.4.1'
 gem 'haml', '5.1.2'
+gem 'will_paginate', '3.3.0'
 
 gem 'bootsnap', '>= 1.1.0', require: false
 

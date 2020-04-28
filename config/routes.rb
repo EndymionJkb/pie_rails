@@ -5,7 +5,11 @@ Rails.application.routes.draw do
   
   resources :settings, :only => [:show, :update]
   resources :pies, :only => [:show, :edit, :update] do
-    put 'reset', :on => :member
+    member do
+      put 'reset'
+      get 'edit_allocation'
+      put 'update_allocation'
+    end
   end
   
   # Don't want to update these in the pie form without submitting
