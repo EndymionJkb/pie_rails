@@ -36,8 +36,10 @@ ActiveRecord::Schema.define(version: 2020_04_27_211737) do
     t.decimal "esg_performance", precision: 8, scale: 4
     t.decimal "alpha", precision: 10, scale: 6
     t.decimal "benchmark", precision: 10, scale: 6
+    t.decimal "price", precision: 10, scale: 4
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["cca_id", "run_date"], name: "index_etfs_on_cca_id_and_run_date", unique: true
   end
 
   create_table "etfs_pies", id: false, force: :cascade do |t|
@@ -99,8 +101,10 @@ ActiveRecord::Schema.define(version: 2020_04_27_211737) do
     t.float "m3_return"
     t.float "m6_return"
     t.float "y1_return"
+    t.decimal "price", precision: 10, scale: 4
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["cca_id", "run_date"], name: "index_stocks_on_cca_id_and_run_date", unique: true
   end
 
   create_table "users", force: :cascade do |t|

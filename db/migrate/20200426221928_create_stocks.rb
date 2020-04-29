@@ -13,6 +13,7 @@ class CreateStocks < ActiveRecord::Migration[5.2]
       t.float :m3_return
       t.float :m6_return
       t.float :y1_return
+      t.numeric :price, :precision => 10, :scale => 4
 
       t.timestamps
     end

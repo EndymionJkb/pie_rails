@@ -13,6 +13,7 @@
 #  esg_performance :decimal(8, 4)
 #  alpha           :decimal(10, 6)
 #  benchmark       :decimal(10, 6)
+#  price           :decimal(10, 4)
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
 #

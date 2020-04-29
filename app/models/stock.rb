@@ -15,6 +15,7 @@
 #  m3_return    :float
 #  m6_return    :float
 #  y1_return    :float
+#  price        :decimal(10, 4)
 #  created_at   :datetime         not null
 #  updated_at   :datetime         not null
 #

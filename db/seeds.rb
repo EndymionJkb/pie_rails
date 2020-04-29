@@ -22,7 +22,8 @@ if 0 == Stock.count
                  :m1_return => line[7].to_f,
                  :m3_return => line[8].to_f,
                  :m6_return => line[9].to_f,
-                 :y1_return => line[10].to_f)
+                 :y1_return => line[10].to_f,
+                 :price => line[11].to_f)
   end  
 end
 
@@ -39,6 +40,7 @@ if 0 == Etf.count
                :forecast_g => line[5].to_f,
                :esg_performance => line[6].to_f,
                :alpha => line[7].to_f,
-               :benchmark => line[8].to_f)
+               :benchmark => line[8].to_f,
+               :price => line[9].to_f)
   end  
 end
