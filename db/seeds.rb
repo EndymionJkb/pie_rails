@@ -69,7 +69,7 @@ if 0 == Pie.where(:user_id => nil).count
                  :pct_crypto => 20,
                  :pct_equities => 10,
                  :name => 'Conservative')
-  p.etfs << Etf.find([145,130,98,110])
+  p.etfs << Etf.where('cca_id IN (?)', [3372, 3250, 3117, 3145])
   p.create_crypto(:pct_curr1 => 50, :pct_curr2 => 50, :pct_curr3 => 0) # BTC, ETH, LINK
   p.create_stable_coin(:pct_curr1 => 50, :pct_curr2 => 0, :pct_curr3 => 50) # USDC, DAI, USDT
   
@@ -79,8 +79,8 @@ if 0 == Pie.where(:user_id => nil).count
                  :pct_crypto => 0,
                  :pct_equities => 70,
                  :name => 'Traditional')
-  p.etfs << Etf.find([145,130,98,110])
-  p.stocks << Stock.find([657,786,1561,1324])
+  p.etfs << Etf.where('cca_id IN (?)', [3372, 3250, 3117, 3145])
+  p.stocks << Stock.where('cca_id IN (?)', [96923, 97269, 99348, 98696])
   p.create_stable_coin(:pct_curr1 => 50, :pct_curr2 => 0, :pct_curr3 => 50) # USDC, DAI, USDT
   
   p = Pie.create(:user_id => nil,
@@ -91,8 +91,8 @@ if 0 == Pie.where(:user_id => nil).count
                  :name => 'Growth')
   p.create_crypto(:pct_curr1 => 50, :pct_curr2 => 30, :pct_curr3 => 20) # BTC, ETH, LINK
   p.create_stable_coin(:pct_curr1 => 40, :pct_curr2 => 40, :pct_curr3 => 20) # USDC, DAI, USDT
-  p.etfs << Etf.find([145,130,98,110])
-  p.stocks << Stock.find([657,786,1561,1324])
+  p.etfs << Etf.where('cca_id IN (?)', [3372, 3250, 3117, 3145])
+  p.stocks << Stock.where('cca_id IN (?)', [96923, 97269, 99348, 98696])
 
   p = Pie.create(:user_id => nil,
                  :pct_gold => 0,
@@ -111,5 +111,4 @@ if 0 == Pie.where(:user_id => nil).count
                  :name => 'Pandemic!')
   p.create_crypto(:pct_curr1 => 80, :pct_curr2 => 20, :pct_curr3 => 0) # BTC, ETH, LINK
   p.create_stable_coin(:pct_curr1 => 100, :pct_curr2 => 0, :pct_curr3 => 0) # USDC, DAI, USDT
-
 end
