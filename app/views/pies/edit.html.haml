@@ -46,7 +46,7 @@
               %input#cash_props{:type => 'text', :readonly => 'true', :style => 'width:450px;'}
               #cash_slider{:style => "margin-top:-20px; width:50%;"}
             %p{:style => 'margin-top:-30px'}
-              = link_to 'Edit Equity Allocation', edit_allocation_py_path(@pie)
+              %br= link_to t('edit_allocation'), edit_allocation_py_path(@pie), :class => 'btn btn-primary'
 
 :javascript
   $(document).ready(function(e) {

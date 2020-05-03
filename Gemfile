@@ -21,12 +21,16 @@ gem 'jquery-ui-rails', '6.0.1'
 gem 'bootstrap', '4.4.1'
 gem 'haml', '5.1.2'
 gem 'will_paginate', '3.3.0'
+gem 'web3-eth', '0.2.38'
 
 gem 'bootsnap', '>= 1.1.0', require: false
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug', platforms: [:mri, :mingw, :x64_mingw]
+  gem 'rspec-rails', '4.0.0'
+  gem 'factory_bot_rails', '5.1.1'
+  gem 'faker', '2.11.0'
 end
 
 group :development do
@@ -41,4 +45,10 @@ group :development do
   gem 'haml-rails', '2.0.1'
   gem 'better_errors', '2.6.0'
   gem 'binding_of_caller', '0.8.0'
+end
+
+group :test do
+  gem 'database_cleaner-active_record', '1.8.0'
+  gem 'shoulda-matchers', '4.3.0'
+  gem 'rspec-its', '1.3.0'  
 end

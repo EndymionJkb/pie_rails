@@ -10,10 +10,21 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_04_27_211737) do
+ActiveRecord::Schema.define(version: 2020_05_03_010048) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "balancer_pools", force: :cascade do |t|
+    t.bigint "pie_id"
+    t.string "uma_address", limit: 42
+    t.string "bp_address", limit: 42
+    t.date "uma_expiry"
+    t.text "allocation"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["pie_id"], name: "index_balancer_pools_on_pie_id"
+  end
 
   create_table "cryptos", force: :cascade do |t|
     t.bigint "pie_id"
@@ -66,6 +77,15 @@ ActiveRecord::Schema.define(version: 2020_04_27_211737) do
     t.bigint "stock_id"
     t.index ["pie_id"], name: "index_pies_stocks_on_pie_id"
     t.index ["stock_id"], name: "index_pies_stocks_on_stock_id"
+  end
+
+  create_table "price_histories", force: :cascade do |t|
+    t.string "coin", limit: 8, null: false
+    t.date "date", null: false
+    t.decimal "price", precision: 8, scale: 2
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["coin", "date"], name: "index_price_histories_on_coin_and_date", unique: true
   end
 
   create_table "settings", force: :cascade do |t|

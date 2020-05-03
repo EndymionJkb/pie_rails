@@ -1,0 +1,53 @@
+- provide(:title, t('models'))
+= render 'layouts/pie_header'
+= javascript_include_tag "https://code.highcharts.com/highcharts.js"
+= javascript_include_tag "https://code.highcharts.com/modules/data.js"
+.c_customer.afclr
+  .wrapper
+    .re_main.afclr
+      .ab_head.afclr
+        %h1= t('models')
+      .in_iner_pag.afclr
+        %table.table.table-striped
+          %tr
+            %th Name
+            %th % Gold
+            %th % Crypto
+            %th % Cash
+            %th % Equities
+            %th 3m Return
+            %th 6m Return
+            %th
+          - @models.each do |model|
+            %tr
+              %td= model.name
+              %td= model.pct_gold
+              %td= model.pct_crypto
+              %td= model.pct_cash
+              %td= model.pct_equities
+              %td
+              %td
+              %td
+                = link_to t('copy'), copy_py_path(:id => 1, :src => model.id), :class => 'btn btn-secondary', :method => :put
+            %tr
+              %td
+              %td
+                - if model.pct_gold > 0
+                  = render :partial => 'table_graph', :locals => {:model => "#{model.id}_gold", :label => 'Gold', :data => {'PAXG' => 100}}
+              %td
+                - if model.pct_crypto > 0
+                  = render :partial => 'table_graph', :locals => {:model => "#{model.id}_crypto", :label => 'Crypto', :data => {model.crypto.currency_name(0) => model.crypto.pct_curr1, model.crypto.currency_name(1) => model.crypto.pct_curr2, model.crypto.currency_name(2) => model.crypto.pct_curr3}}
+              %td
+                - if model.pct_cash > 0
+                  = render :partial => 'table_graph', :locals => {:model => "#{model.id}_cash", :label => 'Cash', :data => {model.stable_coin.currency_name(0) => model.stable_coin.pct_curr1, model.stable_coin.currency_name(1) => model.stable_coin.pct_curr2, model.stable_coin.currency_name(2) => model.stable_coin.pct_curr3}}
+              %td
+                - if model.pct_equities > 0
+                  = render :partial => 'table_graph', :locals => {:model => "#{model.id}_equity", :label => 'Equity', :data => model.equity_graph_data}
+              %td
+              %td
+              %td
+:javascript
+  $(document).ready(function(e) {
+     render_model_graphs();
+  });
+  

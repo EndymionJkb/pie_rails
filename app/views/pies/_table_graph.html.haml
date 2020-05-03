@@ -1,0 +1,6 @@
+%div.graph_data{:id => model, :style => 'width:200px; height:200px;'}
+  - res = []
+  - data.keys.each do |key|
+    - res.push("#{key}:#{data[key]}")
+  = hidden_field_tag :graph, res.join("/"), :id => "#{model}_val"
+  = hidden_field_tag :label, label, :id => "#{model}_label"

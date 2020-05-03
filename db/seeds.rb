@@ -44,3 +44,72 @@ if 0 == Etf.count
                :price => line[9].to_f)
   end  
 end
+
+if 0 == PriceHistory.count
+  ['BTC', 'ETH', 'LINK', 'PAXG'].each do |coin|
+    puts "Loading #{coin}"
+    CSV.foreach("db/data/#{coin}Prices.csv", :headers => true) do |line|
+      date = DateTime.strptime(line[0], '%d-%b-%y') rescue nil
+      if date.nil?
+        date = DateTime.strptime(line[0], '%m/%d/%y')
+      end
+      
+      PriceHistory.create(:coin => coin,
+                          :date => date,
+                          :price => line[1].to_f)
+    end  
+  end
+end
+
+if 0 == Pie.where(:user_id => nil).count
+  # Sample pies, with user_id 0
+  p = Pie.create(:user_id => 0,
+                 :pct_gold => 20,
+                 :pct_cash => 50,
+                 :pct_crypto => 20,
+                 :pct_equities => 10,
+                 :name => 'Conservative')
+  p.etfs << Etf.find([145,130,98,110])
+  p.create_crypto(:pct_curr1 => 50, :pct_curr2 => 50, :pct_curr3 => 0) # BTC, ETH, LINK
+  p.create_stable_coin(:pct_curr1 => 50, :pct_curr2 => 0, :pct_curr3 => 50) # USDC, DAI, USDT
+  
+  p = Pie.create(:user_id => nil,
+                 :pct_gold => 20,
+                 :pct_cash => 10,
+                 :pct_crypto => 0,
+                 :pct_equities => 70,
+                 :name => 'Traditional')
+  p.etfs << Etf.find([145,130,98,110])
+  p.stocks << Stock.find([657,786,1561,1324])
+  p.create_stable_coin(:pct_curr1 => 50, :pct_curr2 => 0, :pct_curr3 => 50) # USDC, DAI, USDT
+  
+  p = Pie.create(:user_id => nil,
+                 :pct_gold => 0,
+                 :pct_cash => 20,
+                 :pct_crypto => 50,
+                 :pct_equities => 30,
+                 :name => 'Growth')
+  p.create_crypto(:pct_curr1 => 50, :pct_curr2 => 30, :pct_curr3 => 20) # BTC, ETH, LINK
+  p.create_stable_coin(:pct_curr1 => 40, :pct_curr2 => 40, :pct_curr3 => 20) # USDC, DAI, USDT
+  p.etfs << Etf.find([145,130,98,110])
+  p.stocks << Stock.find([657,786,1561,1324])
+
+  p = Pie.create(:user_id => nil,
+                 :pct_gold => 0,
+                 :pct_cash => 20,
+                 :pct_crypto => 80,
+                 :pct_equities => 0,
+                 :name => 'Crypto Focus')
+  p.create_crypto(:pct_curr1 => 40, :pct_curr2 => 30, :pct_curr3 => 30) # BTC, ETH, LINK
+  p.create_stable_coin(:pct_curr1 => 20, :pct_curr2 => 80, :pct_curr3 => 0) # USDC, DAI, USDT
+
+  p = Pie.create(:user_id => nil,
+                 :pct_gold => 30,
+                 :pct_cash => 50,
+                 :pct_crypto => 20,
+                 :pct_equities => 0,
+                 :name => 'Pandemic!')
+  p.create_crypto(:pct_curr1 => 80, :pct_curr2 => 20, :pct_curr3 => 0) # BTC, ETH, LINK
+  p.create_stable_coin(:pct_curr1 => 100, :pct_curr2 => 0, :pct_curr3 => 0) # USDC, DAI, USDT
+
+end

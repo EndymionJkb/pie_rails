@@ -8,8 +8,8 @@
         %ul.nav-menu.afclr
           - if signed_in?
             %li= link_to t('pies'), py_path(1)
-            %li= link_to t('stocks'), root_path #TODO contact_path
-            %li= link_to t('etfs'), root_path #TODO contact_path
+            %li= link_to t('models'), pies_path
+            %li= link_to t('backtest'), root_path #TODO contact_path
             %li= link_to t('settings'), setting_path(1)
           - else
             %li= link_to t('home'), root_path

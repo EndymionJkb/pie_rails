@@ -133,6 +133,18 @@ class PiesController < ApplicationController
     end
   end
 
+  # Model portfolios
+  def index
+    @models = Pie.where(:user_id => nil)
+  end
+  
+  def copy
+    @pie = Pie.find(params[:id])   
+    @to_copy = Pie.find(params[:src])
+    
+    redirect_to edit_py_path(@pie), :notice => "Copied #{@to_copy.name}"
+  end
+    
 private
   def pie_params
     params.require(:pie).permit(:pct_gold, :pct_cash, :pct_crypto, :pct_equities, :name, 

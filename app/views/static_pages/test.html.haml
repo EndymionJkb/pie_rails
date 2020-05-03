@@ -1,0 +1,60 @@
+- provide(:title, 'Test Metamask')
+= render 'layouts/pie_header'
+.c_customer.afclr
+  .wrapper
+    .re_main.afclr
+      .ab_head.afclr
+        %h1 Test Metamask
+        = button_to 'Connect!', '#', :id => 'btn_connect', :class => 'btn btn-primary', :onclick => 'connect_to_mm(); return false;'
+:javascript
+  /*async function getAccount() {
+    const accounts = await ethereum.enable();
+    const account = accounts[0];
+    alert(account);
+    //showAccount.innerHTML = account;
+  };*/
+  function connect_to_mm() {
+      const accounts = ethereum.enable();
+      const account = accounts[0];
+      alert(account);
+  }
+  
+  $(document).ready(function(e) {
+    /*if (typeof web3 !== 'undefined') {
+       web3 = new Web3(web3.currentProvider);
+       web3.eth.defaultAccount = web3.eth.accounts[0];
+       alert(web3.eth.defaultAccount);
+    }*/
+
+    if (typeof window.ethereum !== 'undefined') {
+      // Ethereum user detected. You can now use the provider.
+      const provider = window['ethereum'];
+      alert("We have a provider! "+ ethereum.networkVersion); // 42 for Kovan
+      //alert("Address: " + ethereum.selectedAddress);
+      web3 = new Web3(web3.currentProvider);
+      //web3.eth.defaultAccount = web3.eth.accounts[0];
+      //alert(web3.eth.defaultAccount);
+      //const accounts = ethereum.enable();
+      //const account = accounts[0];
+      //alert(account);
+      web3.eth.getAccounts().then(console.log);
+
+    /*try {
+        const accounts = ethereum.send('eth_requestAccounts');
+        alert("Account! " + accounts[0].result[0]);
+        // You now have an array of accounts!
+        // Currently only ever one:
+        // { id: 1, jsonrpc: "2.0", result: ['0xFDEa65C8e26263F6d9A1B5de9555D2931A33b825']}
+      } catch (error) {
+        if (error.code === 4001) {
+          // EIP 1193 userRejectedRequest error
+          alert('Please connect to MetaMask.');
+        } else {
+          alert(error);
+        }
+      }  */  
+    }
+    else {
+        alert("No Ethereum provider!")
+    }
+  });

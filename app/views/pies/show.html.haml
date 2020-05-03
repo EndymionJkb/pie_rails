@@ -3,9 +3,6 @@
 = javascript_include_tag "https://code.highcharts.com/highcharts.js"
 = javascript_include_tag "https://code.highcharts.com/modules/data.js"
 = javascript_include_tag "https://code.highcharts.com/modules/drilldown.js"
-= javascript_include_tag "https://code.highcharts.com/modules/exporting.js"
-= javascript_include_tag "https://code.highcharts.com/modules/export-data.js"
-= javascript_include_tag "https://code.highcharts.com/modules/accessibility.js"
 
 .c_customer.afclr
   .wrapper
@@ -17,7 +14,8 @@
           #my_pie
             %p.highcharts-description
               Pie chart where the individual slices can be clicked to expose more detailed data
-        %p= link_to 'Edit my Allocation', edit_py_path(1)
+        %br
+        %center= link_to t('edit_allocation'), edit_py_path(1), :class => 'btn btn-primary'
 :javascript
   $(document).ready(function(e) {
      Highcharts.chart('my_pie', #{@chart_data})

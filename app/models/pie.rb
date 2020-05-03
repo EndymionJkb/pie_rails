@@ -13,7 +13,7 @@
 #  updated_at   :datetime         not null
 #
 class Pie < ApplicationRecord
-  belongs_to :user
+  belongs_to :user, :optional => true
   
   DEFAULT_PCT_GOLD = 25
   DEFAULT_PCT_CRYPTO = 25
@@ -24,6 +24,7 @@ class Pie < ApplicationRecord
   
   has_one :crypto
   has_one :stable_coin
+  has_one :balancer_pool
   
   has_and_belongs_to_many :stocks
   has_and_belongs_to_many :etfs
@@ -39,14 +40,28 @@ class Pie < ApplicationRecord
     data[:chart] = {:type => 'pie'}
     data[:title] = {:text => 'My Personal Pie'}
     data[:subtitle] = {:text => 'Click slices to view detailed holdings'}
-    data[:accessibility] = {:announceNewData => {:enabled => true}, :point => {:valueSuffix => '%'}}
-    data[:plotOptions] = {:series => {:dataLabels => {:enabled => true, :format => '{point.name}: {point.y:.1f}%'}}}
+    data[:plotOptions] = {:series => {:dataLabels => {:enabled => true, :format => '{point.name}<br>{point.y:.1f}%'}}}
     data[:tooltip] = {:headerFormat => '<span style="font-size:11px">{series.name}</span><br>',
                       :pointFormat => '<span style="color:{point.color}">{point.name}</span>: <b>{point.y:.2f}%</b> of total<br/>'}
     data[:series] = [build_primary_series]
     data[:drilldown] = {:series => build_drilldown_series}
     
     data.to_json.html_safe
+  end
+  
+  # Should only get called when there are etfs or stocks
+  def equity_graph_data
+    data = Hash.new
+    equal_weight = 100 / (etfs.count + stocks.count) rescue nil
+    
+    if equal_weight
+      etfs.each do |e|
+        data[e.ticker] = equal_weight
+      end
+      data['stocks'] = equal_weight * stocks.count
+    end
+    
+    data
   end
   
 private
