@@ -13,6 +13,26 @@
             %p.highcharts-description
               Pie chart where the individual slices can be clicked to expose more detailed data
         %br
+        - unless @pie.performance.nil?
+          - perf = YAML::load(@pie.performance)[:base_returns]
+          %table.table.table-striped{:style => 'width:10%;float:right;margin-top:-450px'}
+            %caption= t('performance')
+            %tr
+              %th Time
+              %th Return
+            %tr
+              %td 1 mo
+              %td== #{perf[1][:total_return].to_f.round(2)}%
+            %tr
+              %td 3 mo
+              %td== #{perf[3][:total_return].to_f.round(2)}%
+            %tr
+              %td 6 mo
+              %td== #{perf[6][:total_return].to_f.round(2)}%
+            %tr
+              %td 1 yr
+              %td== #{perf[12][:total_return].to_f.round(2)}%
+          %br             
         %center= link_to t('edit_pie'), edit_py_path(1), :class => 'btn btn-primary'
 :javascript
   $(document).ready(function(e) {

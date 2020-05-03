@@ -1,3 +1,5 @@
+require 'pie_calculator'
+
 class PiesController < ApplicationController
   before_action :authenticate_user!
   before_action :no_pool, :only => [:edit_allocation]
@@ -17,7 +19,12 @@ class PiesController < ApplicationController
   def update
     @pie = Pie.find(params[:id])
     
-    if @pie.update_attributes(pie_params)   
+    if @pie.update_attributes(pie_params)  
+      # Calculate returns 
+      perf = PieReturnsCalculator.new(@pie, [1, 3, 6, 12])
+      perf.calculate
+      perf.save
+      
       redirect_to py_path(@pie), :notice => 'Your pie was successfully updated.'
     else
       render 'edit'

@@ -38,3 +38,4 @@ en:
   backtest: 'Back Test'
   models: 'Model Portfolios'
   copy: 'Copy'
+  performance: 'Cumulative Returns'
