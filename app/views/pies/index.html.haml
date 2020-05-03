@@ -35,7 +35,7 @@
                 - if model.pct_equities > 0
                   = render :partial => 'table_graph', :locals => {:model => "#{model.id}_equity", :label => 'Equity', :subtitle => '', :data => model.equity_graph_data}
               %td
-                = link_to t('copy'), copy_py_path(:id => 1, :src => model.id), :class => 'btn btn-secondary', :method => :put
+                = link_to t('copy'), copy_py_path(:id => current_user.pie.id, :src => model.id), :class => 'btn btn-secondary', :method => :put
 :javascript
   $(document).ready(function(e) {
      render_model_graphs();
