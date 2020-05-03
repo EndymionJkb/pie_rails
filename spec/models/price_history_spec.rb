@@ -6,6 +6,7 @@
 #  coin       :string(8)        not null
 #  date       :date             not null
 #  price      :decimal(8, 2)
+#  pct_change :decimal(12, 8)
 #  created_at :datetime         not null
 #  updated_at :datetime         not null
 #
@@ -20,6 +21,7 @@ RSpec.describe PriceHistory, type: :model do
     expect(history).to respond_to(:coin)
     expect(history).to respond_to(:date)
     expect(history).to respond_to(:price)
+    expect(history).to respond_to(:pct_change)
   end
   
   it { should be_valid }

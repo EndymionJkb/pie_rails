@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_05_03_010048) do
+ActiveRecord::Schema.define(version: 2020_05_03_192739) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -46,10 +46,13 @@ ActiveRecord::Schema.define(version: 2020_05_03_010048) do
     t.decimal "forecast_g", precision: 8, scale: 4
     t.decimal "esg_performance", precision: 8, scale: 4
     t.decimal "alpha", precision: 10, scale: 6
-    t.decimal "benchmark", precision: 10, scale: 6
     t.decimal "price", precision: 10, scale: 4
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.decimal "m1_return"
+    t.decimal "m3_return"
+    t.decimal "m6_return"
+    t.decimal "y1_return"
     t.index ["cca_id", "run_date"], name: "index_etfs_on_cca_id_and_run_date", unique: true
   end
 
@@ -69,6 +72,7 @@ ActiveRecord::Schema.define(version: 2020_05_03_010048) do
     t.string "name", limit: 32
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.text "performance"
     t.index ["user_id"], name: "index_pies_on_user_id"
   end
 
@@ -83,6 +87,7 @@ ActiveRecord::Schema.define(version: 2020_05_03_010048) do
     t.string "coin", limit: 8, null: false
     t.date "date", null: false
     t.decimal "price", precision: 8, scale: 2
+    t.decimal "pct_change", precision: 12, scale: 8
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["coin", "date"], name: "index_price_histories_on_coin_and_date", unique: true

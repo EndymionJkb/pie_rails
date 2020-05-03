@@ -45,8 +45,11 @@
             %p{:style => 'margin-top:-20px'}
               %input#cash_props{:type => 'text', :readonly => 'true', :style => 'width:450px;'}
               #cash_slider{:style => "margin-top:-20px; width:50%;"}
-            %p{:style => 'margin-top:-30px'}
-              %br= link_to t('edit_allocation'), edit_allocation_py_path(@pie), :class => 'btn btn-primary'
+              %p{:style => 'margin-top:-30px'}
+              - if @pie.balancer_pool.nil?
+                %br= link_to t('edit_allocation'), edit_allocation_py_path(@pie), :class => 'btn btn-primary'
+              - else
+                %br= t('no_edit_allocation')
 
 :javascript
   $(document).ready(function(e) {

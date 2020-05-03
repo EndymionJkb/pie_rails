@@ -5,7 +5,7 @@ class GraphsController < ApplicationController
     data = Hash.new
     data[:chart] = {:type => 'pie'}
     data[:title] = {:text => params[:label]}
-    data[:subtitle] = {:text => ''}
+    data[:subtitle] = {:text => params[:subtitle]}
     data[:plotOptions] = {:series => {:dataLabels => {:enabled => true, :distance => -30, :format => '{point.name}<br>{point.y:.1f}%'}}}
 
     sections = []

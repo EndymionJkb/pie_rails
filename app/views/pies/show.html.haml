@@ -7,15 +7,13 @@
 .c_customer.afclr
   .wrapper
     .re_main.afclr
-      .ab_head.afclr
-        %h1= t('pies')
       .in_iner_pag.afclr
         %figure.highcharts-figure
           #my_pie
             %p.highcharts-description
               Pie chart where the individual slices can be clicked to expose more detailed data
         %br
-        %center= link_to t('edit_allocation'), edit_py_path(1), :class => 'btn btn-primary'
+        %center= link_to t('edit_pie'), edit_py_path(1), :class => 'btn btn-primary'
 :javascript
   $(document).ready(function(e) {
      Highcharts.chart('my_pie', #{@chart_data})

@@ -1,5 +1,6 @@
 class PiesController < ApplicationController
   before_action :authenticate_user!
+  before_action :no_pool, :only => [:edit_allocation]
   
   def show
     current_user.ensure_pie
@@ -32,6 +33,8 @@ class PiesController < ApplicationController
                            :pct_equities => Pie::DEFAULT_PCT_EQUITIES)  
     @pie.crypto.reset
     @pie.stable_coin.reset
+    @pie.etfs.delete_all
+    @pie.stocks.delete_all
     
     redirect_to edit_py_path(@pie)
   end
@@ -140,9 +143,35 @@ class PiesController < ApplicationController
   
   def copy
     @pie = Pie.find(params[:id])   
-    @to_copy = Pie.find(params[:src])
+    @src = Pie.find(params[:src])
     
-    redirect_to edit_py_path(@pie), :notice => "Copied #{@to_copy.name}"
+    @pie.update_attributes(:pct_gold => @src.pct_gold, 
+                           :pct_crypto => @src.pct_crypto,
+                           :pct_cash => @src.pct_cash,
+                           :pct_equities => @src.pct_equities)
+
+    if @src.crypto.nil?
+      @pie.crypto.reset
+    else
+      @pie.crypto.update_attributes(:pct_curr1 => @src.crypto.pct_curr1, 
+                                    :pct_curr2 => @src.crypto.pct_curr2,
+                                    :pct_curr3 => @src.crypto.pct_curr3)
+    end
+    
+    if @src.stable_coin.nil?
+      @pie.stable_coin.reset
+    else
+      @pie.stable_coin.update_attributes(:pct_curr1 => @src.stable_coin.pct_curr1, 
+                                         :pct_curr2 => @src.stable_coin.pct_curr2,
+                                         :pct_curr3 => @src.stable_coin.pct_curr3)
+    end
+    @pie.etfs.delete_all
+    @pie.stocks.delete_all
+    
+    @pie.etfs << @src.etfs unless 0 == @src.etfs.count
+    @pie.stocks << @src.stocks unless 0 == @src.stocks.count
+                     
+    redirect_to edit_py_path(@pie), :notice => "Copied #{@src.name}"
   end
     
 private
@@ -150,5 +179,11 @@ private
     params.require(:pie).permit(:pct_gold, :pct_cash, :pct_crypto, :pct_equities, :name, 
                                 :crypto_attributes => [:id, :pct_curr1, :pct_curr2, :pct_curr3],
                                 :stable_coin_attributes => [:id, :pct_curr1, :pct_curr2, :pct_curr3])
+  end
+  
+  def no_pool
+    unless current_user.pie.balancer_pool.nil?
+      redirect_to root_path, :alert => t('no_edit_allocation')
+    end
   end
 end

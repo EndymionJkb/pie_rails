@@ -11,6 +11,7 @@
 #  name         :string(32)
 #  created_at   :datetime         not null
 #  updated_at   :datetime         not null
+#  performance  :text
 #
 class Pie < ApplicationRecord
   belongs_to :user, :optional => true
@@ -38,7 +39,7 @@ class Pie < ApplicationRecord
   def build_chart
     data = Hash.new
     data[:chart] = {:type => 'pie'}
-    data[:title] = {:text => 'My Personal Pie'}
+    data[:title] = {:text => self.name.blank? ? "My Pie" : self.name}
     data[:subtitle] = {:text => 'Click slices to view detailed holdings'}
     data[:plotOptions] = {:series => {:dataLabels => {:enabled => true, :format => '{point.name}<br>{point.y:.1f}%'}}}
     data[:tooltip] = {:headerFormat => '<span style="font-size:11px">{series.name}</span><br>',
@@ -58,7 +59,7 @@ class Pie < ApplicationRecord
       etfs.each do |e|
         data[e.ticker] = equal_weight
       end
-      data['stocks'] = equal_weight * stocks.count
+      data['stocks'] = equal_weight * stocks.count if stocks.count > 0
     end
     
     data
@@ -85,7 +86,7 @@ private
     if self.pct_crypto > 0
       data = []
       for idx in 0..2 do
-        data.push([self.crypto.currency_name(idx), self.crypto.currency_pct(idx)])
+        data.push([self.crypto.currency_name(idx), self.crypto.currency_pct(idx)]) if self.crypto.currency_pct(idx) > 0
       end
       series.push({:name => 'Crypto',:id => 'Crypto', :data => data})
     end
@@ -93,7 +94,7 @@ private
     if self.pct_cash > 0
       data = []
       for idx in 0..2 do
-        data.push([self.stable_coin.currency_name(idx), self.stable_coin.currency_pct(idx)])
+        data.push([self.stable_coin.currency_name(idx), self.stable_coin.currency_pct(idx)]) if self.stable_coin.currency_pct(idx) > 0
       end
       series.push({:name => 'Cash',:id => 'Cash', :data => data})
     end
