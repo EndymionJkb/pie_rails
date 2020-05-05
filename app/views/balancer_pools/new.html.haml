@@ -1,0 +1,44 @@
+- provide(:title, t('balancer_pool'))
+= javascript_include_tag "https://code.highcharts.com/highcharts.js"
+= javascript_include_tag "https://code.highcharts.com/modules/data.js"
+= javascript_include_tag "https://code.highcharts.com/modules/drilldown.js"
+= render 'layouts/pie_header'
+.page-container
+  .c_customer.afclr
+    .wrapper
+      .re_main.afclr
+        .ab_head.afclr
+          %h1= t('create_balancer')
+        .in_iner_pag.afclr
+          .row
+            .col-md-5
+              %table.table.striped-table{:style => 'width:20%'}
+                %caption= t('metamask_balances')
+                %tr
+                  %th= t('token')
+                  %th= t('balance')
+                - @metamask.keys.each do |coin|
+                  %tr
+                    %td= coin
+                    %td= number_with_delimiter(@metamask[coin])
+              - unless @btc_amount.nil?
+                .alert.alert-danger{:style => 'width:420px'}
+                  = t('need_pbtc')
+                  %br
+                  %ul
+                    %li= t('trust_me', :amount => @btc_amount, :address => @btc_address)
+                    %li= link_to t('go_ptokens'), BalancerPool::PTOKENS_URL, :target => '_blank'
+            .col-md-7
+              = form_for @pool do |f|
+                %p
+                  = t('investment')
+                  %strong== : #{number_to_currency(@investment)}
+                  %figure.highcharts-figure
+                    #my_plan
+                      %p.highcharts-description
+                        The Pie chart with the plan!
+                %center= f.submit t('create_pool'), :class => 'btn btn-primary'
+:javascript
+  $(document).ready(function(e) {
+     Highcharts.chart('my_plan', #{@chart_data})
+  });

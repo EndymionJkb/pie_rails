@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_05_03_192739) do
+ActiveRecord::Schema.define(version: 2020_05_05_040625) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -23,6 +23,7 @@ ActiveRecord::Schema.define(version: 2020_05_03_192739) do
     t.text "allocation"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "balancer_url"
     t.index ["pie_id"], name: "index_balancer_pools_on_pie_id"
   end
 

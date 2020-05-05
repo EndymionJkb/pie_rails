@@ -14,6 +14,7 @@ Rails.application.routes.draw do
   end
 
   resources :graphs, :only => [:create, :show]
+  resources :balancer_pools, :only => [:new, :create, :show]
     
   # Don't want to update these in the pie form without submitting
   #resources :cryptos, :only => [:update]

@@ -38,6 +38,15 @@ class Pie < ApplicationRecord
   validates_numericality_of :pct_gold, :pct_crypto, :pct_cash, :pct_equities, :only_integer => true,
                             :greater_than_or_equal_to => 0, :less_than_or_equal_to => 100
   
+  def amount_pbtc_needed(total_value)
+    if self.pct_crypto > 0 and crypto.pct_curr1 > 0
+      btc_date = PriceHistory.where(:coin => 'pBTC').maximum(:date)
+      price = PriceHistory.where(:coin => 'pBTC', :date => btc_date).first.price
+      
+      total_value * self.pct_crypto * crypto.pct_curr1 / price
+    end
+  end
+  
   def backtest_data
     perf = YAML::load(self.performance)
     unless perf.has_key?(:backtest_ts)

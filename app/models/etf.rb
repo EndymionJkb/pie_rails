@@ -15,10 +15,10 @@
 #  price           :decimal(10, 4)
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
-#  m1_pct_return   :decimal(, )
-#  m3_pct_return   :decimal(, )
-#  m6_pct_return   :decimal(, )
-#  y1_pct_return   :decimal(, )
+#  m1_return       :decimal(, )
+#  m3_return       :decimal(, )
+#  m6_return       :decimal(, )
+#  y1_return       :decimal(, )
 #
 class Etf < ApplicationRecord
   ESG_WEIGHT = 0.8

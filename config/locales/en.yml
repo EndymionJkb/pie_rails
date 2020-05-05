@@ -41,3 +41,14 @@ en:
   performance: 'Cumulative Returns'
   backtest_title: 'Backtest'
   backtest: "Backtest '%{name}'"
+  balancer_pool: 'Balancer Pool'
+  create_balancer: 'Create Balancer Pool'
+  view_balancer: 'View Balancer'
+  metamask_balances: 'Metamask Balances'
+  token: 'Token'
+  balance: 'Balance'
+  need_pbtc: 'You need pBTC tokens!'
+  trust_me: "Trust me! Send %{amount} BTC to %{address}"
+  go_ptokens: 'Go to the pTokens site'
+  create_pool: 'Create Pool!'
+  investment: 'Initial investment'

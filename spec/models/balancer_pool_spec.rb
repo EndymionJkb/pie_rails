@@ -2,14 +2,15 @@
 #
 # Table name: balancer_pools
 #
-#  id          :bigint           not null, primary key
-#  pie_id      :bigint
-#  uma_address :string(42)
-#  bp_address  :string(42)
-#  uma_expiry  :date
-#  allocation  :text
-#  created_at  :datetime         not null
-#  updated_at  :datetime         not null
+#  id           :bigint           not null, primary key
+#  pie_id       :bigint
+#  uma_address  :string(42)
+#  bp_address   :string(42)
+#  uma_expiry   :date
+#  allocation   :text
+#  created_at   :datetime         not null
+#  updated_at   :datetime         not null
+#  balancer_url :string
 #
 require 'rails_helper'
 
@@ -24,6 +25,7 @@ RSpec.describe BalancerPool, type: :model do
     expect(pool).to respond_to(:bp_address)
     expect(pool).to respond_to(:uma_expiry)
     expect(pool).to respond_to(:allocation)
+    expect(pool).to respond_to(:balancer_url)
   end
   
   it { should be_valid }

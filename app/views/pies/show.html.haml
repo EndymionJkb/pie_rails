@@ -1,8 +1,8 @@
 - provide(:title, t('pies'))
-= render 'layouts/pie_header'
 = javascript_include_tag "https://code.highcharts.com/highcharts.js"
 = javascript_include_tag "https://code.highcharts.com/modules/data.js"
 = javascript_include_tag "https://code.highcharts.com/modules/drilldown.js"
+= render 'layouts/pie_header'
 
 .c_customer.afclr
   .wrapper
@@ -33,7 +33,18 @@
               %td 1 yr
               %td== #{perf[12][:total_return].to_f.round(2)}%
           %br             
-        %center= link_to t('edit_pie'), edit_py_path(1), :class => 'btn btn-primary'
+        %center
+          = link_to t('edit_pie'), edit_py_path(1), :class => 'btn btn-primary'
+          - if @pie.balancer_pool.nil?
+            %br
+            %br
+            = form_tag new_balancer_pool_path, :method => :get do
+              = label_tag :investment, t('investment')
+              = number_field_tag :investment, BalancerPool::INITIAL_INVESTMENT, :min => 1000, :step => 100, :class => 'medium_input'
+              &nbsp;&nbsp;&nbsp;&nbsp;
+              = submit_tag t('create_balancer'), :class => 'btn btn-primary'
+          - else
+            = link_to t('view_balancer'), root_path, :class => 'btn btn-primary'
 :javascript
   $(document).ready(function(e) {
      Highcharts.chart('my_pie', #{@chart_data})
