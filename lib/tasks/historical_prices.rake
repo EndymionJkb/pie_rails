@@ -4,10 +4,14 @@ namespace :db do
   desc "Upload historical ETF and Stock prices for backtesting"
   task :historical_prices => :environment do
     # This assumes there is no ETF named the same as a coin!
+    coins = Hash.new
     CSV.foreach("db/data/historical_etf_prices.csv", :headers => true) do |line|
-      PriceHistory.where(:coin => line[0]).delete_all
+      coins[line[0]] = 1
     end
-     
+    coins.each do |coin|
+      PriceHistory.where(:coin => coin).delete_all
+    end
+    
     puts "Processing ETFs"
     CSV.foreach("db/data/historical_etf_prices.csv", :headers => true) do |line|
       date = DateTime.strptime(line[1], '%m/%d/%y') rescue nil
@@ -25,8 +29,12 @@ namespace :db do
       end
     end  
 
+    coins = Hash.new
     CSV.foreach("db/data/historical_stock_prices.csv", :headers => true) do |line|
-      PriceHistory.where(:coin => line[0]).delete_all
+      coins[line[0]] = 1
+    end
+    coins.each do |coin|
+      PriceHistory.where(:coin => coin).delete_all
     end
     
     puts "Processing Stocks"
