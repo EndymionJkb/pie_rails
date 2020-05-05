@@ -97,7 +97,8 @@ class Pie < ApplicationRecord
     data[:title] = {:text => "1 year backtest (daily rebalance)"}
     data[:subtitle] = {:text => "Total return: #{total_return}%"}
     data[:xAxis] = {:type => 'datetime', :dateTimeLabelFormats => {:millisecond => "%m/%d/%y"}}
-    data[:yAxis] = {:title => {:text => 'Total Value'}}
+    data[:yAxis] = [{:title => {:text => 'Total Value'}, :min => PieCalculator::STARTING_VALUE / 2}, 
+                    {:opposite => true, :title => {:text => 'Rebalance volume'}}]
     data[:legend] = {:enabled => true}
     data[:plotOptions] = {:area => {:fillColor => {:linearGradient => {:x1 => 0, :y1 => 0, :x2 => 0, :y2 => 1}, 
                                                    :stops => [[0,'#7cb5ec'],
@@ -109,10 +110,12 @@ class Pie < ApplicationRecord
                                     :threshold => nil}
     data[:series] = [{:type => 'area',
                       :name => 'Portfolio Value',
-                      :data => backtest_data},
+                      :data => backtest_data,
+                      :yAxis => 0},
                       {:type => 'area',
                        :name => 'Rebalance Volume',
-                       :data => rebalance_data}]
+                       :data => rebalance_data,
+                       :yAxis => 1}]
     
     data.to_json.html_safe
   end

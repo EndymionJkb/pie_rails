@@ -21,4 +21,5 @@ Rails.application.routes.draw do
   #resources :stable_coins, :only => [:update]
   
   get '/test', :to => 'static_pages#test'
+  get '/about', :to => 'static_pages#about'
 end

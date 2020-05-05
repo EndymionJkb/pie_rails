@@ -6,6 +6,7 @@
       .site-menu.afclr
         %a.menu_expand.afclr{:href => "javascript:void(1);"}
         %ul.nav-menu.afclr
+          %li= link_to t('about'), about_path
           - if signed_in?
             %li= link_to t('pies'), py_path(1)
             %li= link_to t('models'), pies_path
