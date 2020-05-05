@@ -8,7 +8,7 @@ en:
   settings: 'Settings'
   pies: 'My Pie'
   pie_heading: "Edit my Pie's Allocation"
-  settings_title: 'ESG Settings'
+  settings_title: 'Optimization preferences'
   pct_gold: '% Gold'
   pct_crypto: '% Cryptocurrency'
   pct_cash: '% Cash (Stable Coins)'

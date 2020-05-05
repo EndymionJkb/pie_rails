@@ -5,12 +5,97 @@
     .re_main.afclr
       .ab_head.afclr
         %h1= t('settings_title')
-      .in_iner_pag.afclr
+      .in_iner_pag.afclr{:style => 'width:50%; margin-left:300px'}
         %p
+          %strong ESG Settings
           %input#proportions{:type => 'text', :readonly => 'true'}
           #slider-range
+        %p
+          %strong Risk Tolerance
+          #slider-risk
+        %p
+          %strong Growth Potential
+          #slider-growth
+        %p
+          %strong Crypto Focus
+          %br
+          = radio_button_tag 'focus', 'Large Cap', true
+          Large Cap (
+          = image_tag 'pBTC.png', :style => 'width:30px'
+          = image_tag 'eth.png'
+          = image_tag 'link.png'
+          )
+          = radio_button_tag 'focus', 'Privacy'
+          Privacy (
+          = image_tag 'pZEC.png', :style => 'width:30px'
+          )
+          = radio_button_tag 'focus', 'DeFi'
+          DeFi (
+          = image_tag 'mkr.png'
+          = image_tag 'aLEND.svg', :style => 'width:30px'
+          = image_tag 'aKNC.svg', :style => 'width:30px'
+          )
+          %br
+          = radio_button_tag 'focus', 'Gaming'
+          Gaming (
+          = image_tag 'enj.png', :style => 'width:30px'
+          = image_tag 'mana.png', :style => 'width:30px'
+          )
+          = radio_button_tag 'focus', 'Social Media'
+          Social Media (
+          = image_tag 'bat.png', :style => 'width:30px'
+          )
+          %br
+          = radio_button_tag 'focus', 'Prediction Market'
+          Prediction Market (
+          = image_tag 'hedg.png', :style => 'width:30px'
+          = image_tag 'rep.png', :style => 'width:30px'
+          = image_tag 'nmr.png', :style => 'width:30px'
+          )
+          = radio_button_tag 'focus', 'Exchanges'
+          Exchanges (
+          = image_tag 'leo.png', :style => 'width:30px'
+          = image_tag 'knc.png', :style => 'width:30px'
+          = image_tag 'kcs.png', :style => 'width:30px'
+          )
+          %br
+          = radio_button_tag 'focus', 'Finance/Lending'
+          Exchanges (
+          = image_tag 'cro.png', :style => 'width:30px'
+          = image_tag 'nexo.png', :style => 'width:30px'
+          = image_tag 'mco.png', :style => 'width:30px'
+          )
+        %p
+          %strong Stablecoins
+          %br
+          = check_box_tag :usdc
+          = label_tag :usdc, 'USDC'
+          = check_box_tag :dai
+          = label_tag :dai, 'DAI'
+          = check_box_tag :dai
+          = label_tag :dai, 'USDT'
+          = check_box_tag :dai
+          = label_tag :dai, 'TUSD'
+          = check_box_tag :dai
+          = label_tag :dai, 'GUSD'
+          = check_box_tag :dai
+          = label_tag :dai, 'BUSD'
+          = check_box_tag :dai
+          = label_tag :dai, 'UERS'
 :javascript
   $(document).ready(function(e) {
+    $("#slider-risk").slider({
+        min: 0,
+        max: 100,
+        value: 40
+    });
+
+    $("#slider-growth").slider({
+        min: 0,
+        max: 100,
+        value: 80
+    });
+    
     $("#slider-range").slider({
       range: true,
       min: 0,
