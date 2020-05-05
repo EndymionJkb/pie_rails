@@ -39,3 +39,5 @@ en:
   models: 'Model Portfolios'
   copy: 'Copy'
   performance: 'Cumulative Returns'
+  backtest_title: 'Backtest'
+  backtest: "Backtest '%{name}'"

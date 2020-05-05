@@ -1,3 +1,5 @@
+require 'pie_calculator'
+
 # == Schema Information
 #
 # Table name: pies
@@ -35,6 +37,19 @@ class Pie < ApplicationRecord
   
   validates_numericality_of :pct_gold, :pct_crypto, :pct_cash, :pct_equities, :only_integer => true,
                             :greater_than_or_equal_to => 0, :less_than_or_equal_to => 100
+  
+  def backtest_data
+    perf = YAML::load(self.performance)
+    unless perf.has_key?(:backtest_ts)
+      pc = PieBacktestCalculator.new(self)
+      pc.calculate
+      pc.save
+      
+      perf = YAML::load(self.performance)
+    end
+     
+    return perf[:backtest_ts], perf[:backtest_rebalance], perf[:backtest_return]
+  end
                             
   def build_chart
     data = Hash.new
@@ -65,6 +80,34 @@ class Pie < ApplicationRecord
     data
   end
   
+  def backtest_chart_data
+    data = Hash.new
+
+    backtest_data, rebalance_data, total_return = self.backtest_data
+    data[:chart] = {:zoomType => 'x'}
+    data[:title] = {:text => "1 year backtest (daily rebalance)"}
+    data[:subtitle] = {:text => "Total return: #{total_return}%"}
+    data[:xAxis] = {:type => 'datetime', :dateTimeLabelFormats => {:millisecond => "%m/%d/%y"}}
+    data[:yAxis] = {:title => {:text => 'Total Value'}}
+    data[:legend] = {:enabled => true}
+    data[:plotOptions] = {:area => {:fillColor => {:linearGradient => {:x1 => 0, :y1 => 0, :x2 => 0, :y2 => 1}, 
+                                                   :stops => [[0,'#7cb5ec'],
+                                                              [1,'#434348']]}
+                                                  },
+                                    :marker => {:radius => 2},
+                                    :lineWidth => 1,
+                                    :states => {:hover => {:lineWidth => 1}},
+                                    :threshold => nil}
+    data[:series] = [{:type => 'area',
+                      :name => 'Portfolio Value',
+                      :data => backtest_data},
+                      {:type => 'area',
+                       :name => 'Rebalance Volume',
+                       :data => rebalance_data}]
+    
+    data.to_json.html_safe
+  end
+
 private
   def build_primary_series
     # Primary series is Gold, Crypto, Cash, Equities

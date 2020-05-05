@@ -1,6 +1,13 @@
 class GraphsController < ApplicationController
-  respond_to :js
+  respond_to :html, :js
 
+  before_action :authenticate_user!
+
+  def show
+    @pie = current_user.pie
+    @chart_data = @pie.backtest_chart_data
+  end
+  
   def create
     data = Hash.new
     data[:chart] = {:type => 'pie'}

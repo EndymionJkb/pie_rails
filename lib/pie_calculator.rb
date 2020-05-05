@@ -3,6 +3,8 @@ require 'utilities'
 class PieCalculator
   include Utilities
   
+  STARTING_VALUE = 10000
+
   @pie = nil
   @performance = nil
   
@@ -18,10 +20,263 @@ class PieCalculator
   def save
     @pie.update_attribute(:performance, YAML::dump(@performance))
   end 
+
+protected
+  def calculate_initial_amount(coin, start_date, pct)
+    puts "Initial amount of #{coin}"
+    investment = STARTING_VALUE * pct
+    puts "#{investment} = #{STARTING_VALUE} * #{pct}"
+    start_date = PriceHistory.where(:coin => coin).where('date <= ?', start_date).maximum(:date)
+    
+    return [investment, investment / PriceHistory.where(:coin => coin, :date => start_date).first.price]
+  end
+end
+
+class PieBacktestCalculator < PieCalculator
+  # Rebalance daily
+  # Create :backtest_return and :backtest_ts (time series for the chart)
+  def calculate
+    # start 1 year back
+    end_date = PriceHistory.all.maximum(:date)
+    start_date = PriceHistory.where('date >= ?', end_date - 1.year).minimum(:date)
+    # In case a price is missing, use the latest one known (e.g., stock prices over the weekend)
+    last_prices = {}
+    last_shares = {}
+    ref_percentages = {}
+    value_yesterday = STARTING_VALUE
+    has_gold = false
+    has_crypto = false
+    has_equity = false
+    # Don't rebalance cash
+    fixed_cash = 0
+    
+    if @pie.pct_gold > 0
+      has_gold = true
+      
+      ref_percentages['PAXG'] = @pie.pct_gold.to_f / 100
+      start_date = PriceHistory.where(:coin => 'PAXG').where('date <= ?', start_date).maximum(:date)
+      price = PriceHistory.where(:coin => 'PAXG', :date => start_date).first.price
+      last_prices['PAXG'] = price
+      last_shares['PAXG'] = STARTING_VALUE * ref_percentages['PAXG'] / price
+    end
+    
+    if @pie.pct_crypto > 0
+      has_crypto = true
+      
+      crypto = @pie.crypto
+      idx = 0
+      Crypto::SUPPORTED_CURRENCIES.each do |curr|
+        if crypto.currency_pct(idx) > 0
+          currency = Crypto::SUPPORTED_CURRENCIES[idx]
+          ref_percentages[currency] = @pie.pct_crypto.to_f / 100 * crypto.currency_pct(idx).to_f / 100
+          start_date = PriceHistory.where(:coin => currency).where('date <= ?', start_date).maximum(:date)
+          price = PriceHistory.where(:coin => currency, :date => start_date).first.price
+          last_prices[currency] = price
+          last_shares[currency] = STARTING_VALUE * ref_percentages[currency] / price          
+        end
+        idx += 1
+      end
+    end
+    
+    if @pie.pct_cash > 0
+      cash = @pie.stable_coin
+      fixed_cash = STARTING_VALUE * @pie.pct_cash / 100
+      idx = 0
+      StableCoin::SUPPORTED_CURRENCIES.each do |curr|
+        if cash.currency_pct(idx) > 0
+          ref_percentages[curr] = cash.currency_pct(idx).to_f / 100 * @pie.pct_cash.to_f / 100
+          last_prices[curr] = 1
+          last_shares[curr] = STARTING_VALUE * ref_percentages[curr]
+        end
+        idx += 1
+      end
+    end
+    
+    if @pie.pct_equities > 0
+      investment = STARTING_VALUE * @pie.pct_equities.to_f / 100
+      total_slices = @pie.etfs.count + @pie.stocks.count
+      if total_slices > 0
+        has_equity = true
+        
+        reference_pct = @pie.pct_equities.to_f / 100 / total_slices
+        investment /= total_slices.to_f
+        @pie.etfs.each do |etf|
+          # Need to find the price a year ago
+          starting_etf_date = PriceHistory.where(:coin => etf.ticker).where('date <= ?', start_date).maximum(:date)
+          starting_etf = PriceHistory.where(:coin => etf.ticker, :date => starting_etf_date).first
+          
+          ref_percentages[etf.ticker] = reference_pct
+          last_prices[etf.ticker] = starting_etf.price
+          last_shares[etf.ticker] = STARTING_VALUE * reference_pct / starting_etf.price
+        end          
+        @pie.stocks.each do |stock|
+          # Need to find the price a year ago
+          starting_stock_date = PriceHistory.where(:coin => stock.cca_id).where('date <= ?', start_date).maximum(:date)
+          starting_stock = PriceHistory.where(:coin => stock.cca_id, :date => starting_stock_date).first
+          
+          ref_percentages[stock.cca_id] = reference_pct
+          last_prices[stock.cca_id] = starting_stock.price
+          last_shares[stock.cca_id] = STARTING_VALUE * reference_pct / starting_stock.price
+        end
+      end
+    end
+    
+    # ref_percentages, last_prices, and last_shares have the starting values.
+    # Iterate over each day, and rebalance
+        
+    # So we need to rebalance every day, and track the pct difference in the overall value
+    # We plot the value each day, and use the pct differences to compute the return
+    # Example:
+    # PAXG 2000, 1.5 (1333.33 price)  36.36%
+    # USDC 500, 500  (1.0 price)       9.09%
+    # IWV 3000, 28.5 (105.26 price)   54.54%
+    # Total value on day 1 is 5500
+    # Day 2 - PAXG is 1358, IWV is 103.88
+    # PAXG value = 1.5*1358 = 2037   (37.05%)
+    # USDC value = 500               (9.09%)
+    # IWV value = 28.5*103.88 = 2960.58  (53.85%)
+    # Total value = 5497.58
+    # So gold is a little too high, and the stock is a little too low
+    # 36.36% of 5497.58 is 1998.92, which is 1.472, so we need to sell 0.028 PAXG
+    # New PAXG = 1.472, $38.024 balance
+    # 54.54% of 5497.58 is 2998.38, or 28.863 shares. Need to buy .363 - $37.70
+    # So new IWV is 28.863  
+    dates = PriceHistory.where('date > ?', start_date).order(:date).pluck(:date).uniq
+    # Array of [timestamp,value] arrays, for the backtest line chart; value is the total account value
+    graph_points = []
+    # Array of pct change from one day to the next, used for computing total return
+    pct_change = []
+    # Keep track of the "tracking error"
+    rebalance_amounts = []
+    
+    dates.each do |day|
+      # Do a single query per day - not one for each commodity!
+      today_prices = Hash.new
+      PriceHistory.where(:date => day).each do |p|
+        today_prices[p.coin] = p.price
+      end
+      
+      # Accumulate pie value today (start with any cash value)
+      value_today = fixed_cash
+      daily_rebalance = 0
+      
+      # First recalculate the total value of the pie using new prices (value_today), and put that in graph_points
+      # Compute the pct_change, and update value_yesterday
+      # Update num_shares for each holding - ref_pct[holding] * value_today/price_today = new_shares
+      if has_gold
+        # Fall back to last price if it's not present today
+        if today_prices['PAXG'].nil?
+          price = last_prices['PAXG']
+        else
+          price = today_prices['PAXG']
+          last_prices['PAXG'] = price
+        end
+        
+        value_today += last_shares['PAXG'] * price
+      end
+      
+      if has_crypto
+        crypto = @pie.crypto
+        idx = 0
+        Crypto::SUPPORTED_CURRENCIES.each do |curr|
+          if crypto.currency_pct(idx) > 0
+            currency = Crypto::SUPPORTED_CURRENCIES[idx]
+            if today_prices[currency].nil?
+              price = last_prices[currency]
+            else
+              price = today_prices[currency]
+              last_prices[currency] = price
+            end
+            
+            value_today += last_shares[currency] * price
+          end
+          idx += 1
+        end
+      end
+            
+      if has_equity
+        @pie.etfs.map(&:ticker).each do |ticker|
+          if today_prices[ticker].nil?
+            price = last_prices[ticker]
+          else
+            price = today_prices[ticker]
+            last_prices[ticker] = price
+          end
+        
+          value_today += last_shares[ticker] * price
+        end 
+        
+        @pie.stocks.map(&:cca_id).each do |cca_id|
+          if today_prices[cca_id].nil?
+            price = last_prices[cca_id]
+          else
+            price = today_prices[cca_id]
+            last_prices[cca_id] = price
+          end
+        
+          value_today += last_shares[cca_id] * price
+        end                  
+      end
+      
+      # value_today has the current total - update graph and pct_diff structures
+      timestamp = "Date.UTC(#{day.year},#{day.month - 1},#{day.day})"
+      graph_points.push([timestamp, value_today.to_f.round(2)])
+      # Array of pct change from one day to the next, used for computing total return
+      pct_change.push(((value_today - value_yesterday)/value_yesterday).round(2))
+      # Update for the next day
+      value_yesterday = value_today
+      
+      # Now update the share values
+      if has_gold
+        # Update num_shares for each holding - ref_pct[holding] * value_today/price_today = new_shares
+        # last_prices has already been updated to today's price
+        old_shares = last_shares['PAXG']
+        last_shares['PAXG'] = ref_percentages['PAXG'] * value_today / last_prices['PAXG']
+        diff = (last_shares['PAXG'] - old_shares) * last_prices['PAXG']
+        daily_rebalance += diff
+      end
+      
+      if has_crypto
+        crypto = @pie.crypto
+        idx = 0
+        Crypto::SUPPORTED_CURRENCIES.each do |curr|
+          if crypto.currency_pct(idx) > 0
+            currency = Crypto::SUPPORTED_CURRENCIES[idx]
+            old_shares = last_shares[currency]
+            last_shares[currency] = ref_percentages[currency] * value_today / last_prices[currency]
+            diff = (last_shares[currency] - old_shares) * last_prices[currency]
+            daily_rebalance += diff          
+          end
+          idx += 1
+        end
+      end
+            
+      if has_equity
+        @pie.etfs.map(&:ticker).each do |ticker|
+          old_shares = last_shares[ticker]
+          last_shares[ticker] = ref_percentages[ticker] * value_today / last_prices[ticker]
+          diff = (last_shares[ticker] - old_shares) * last_prices[ticker]
+          daily_rebalance += diff          
+        end 
+       
+        @pie.stocks.map(&:cca_id).each do |cca_id|
+          old_shares = last_shares[cca_id]
+          last_shares[cca_id] = ref_percentages[cca_id] * value_today / last_prices[cca_id]
+          diff = (last_shares[cca_id] - old_shares) * last_prices[cca_id]
+          daily_rebalance += diff          
+        end                  
+      end
+      
+      rebalance_amounts.push(["Date.UTC(#{day.year},#{day.month - 1},#{day.day})", daily_rebalance.to_f.round(2)])
+    end  
+    
+    @performance[:backtest_ts] = graph_points
+    @performance[:backtest_return] = Utilities.geometric_sum(pct_change).round(4)
+    @performance[:backtest_rebalance] = rebalance_amounts
+  end
 end
 
 class PieReturnsCalculator < PieCalculator
-  STARTING_VALUE = 10000
   @periods = nil
 
   # Periods is an array of months
@@ -48,8 +303,7 @@ class PieReturnsCalculator < PieCalculator
         
         gold_return = Utilities.geometric_sum(PriceHistory.where(:coin => 'PAXG').where('date >= ?', start_date).map(&:pct_change))
         investments['PAXG'].push(gold_return.round(4))
-        #final_gold_value = investments['PAXG'][0] * (1 + gold_return/100)
-       end
+      end
       
       if @pie.pct_crypto > 0
         crypto = @pie.crypto
@@ -98,7 +352,8 @@ class PieReturnsCalculator < PieCalculator
             else
               raise 'Invalid period for return calculation'
             end              
-            investments[etf.ticker] = [investment, etf.price / investment, etf_return]
+           # Technically this price isn't right - it's the current price, not the starting price; but we're not using it anyway
+           investments[etf.ticker] = [investment, investment / etf.price, etf_return]
           end          
           @pie.stocks.each do |stock|
             case period
@@ -113,12 +368,12 @@ class PieReturnsCalculator < PieCalculator
             else
               raise 'Invalid period for return calculation'
             end              
-            investments[stock.company_name] = [investment, stock.price / investment, stock_return]           
+            # Technically this price isn't right - it's the current price, not the starting price; but we're not using it anyway
+            investments[stock.company_name] = [investment, investment / stock.price, stock_return]           
           end
         end
       end
       
-      puts investments
       # investments[asset] = [initial_value, num_shares, cumulative_return]      
       total_return = 0
       final_value = 0
@@ -130,15 +385,5 @@ class PieReturnsCalculator < PieCalculator
       @performance[:base_returns] = Hash.new unless @performance.has_key?(:base_returns)
       @performance[:base_returns][period] = {:total_return => total_return, :final_value => final_value}
     end   
-  end
-  
-private
-  def calculate_initial_amount(coin, start_date, pct)
-    puts "Initial amount of #{coin}"
-    investment = STARTING_VALUE * pct
-    puts "#{investment} = #{STARTING_VALUE} * #{pct}"
-    start_date = PriceHistory.where(:coin => coin).where('date <= ?', start_date).maximum(:date)
-    
-    return [investment, investment / PriceHistory.where(:coin => coin, :date => start_date).first.price]
   end
 end

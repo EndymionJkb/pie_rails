@@ -1,0 +1,18 @@
+- provide(:title, t('backtest_title'))
+= render 'layouts/pie_header'
+= javascript_include_tag "https://code.highcharts.com/highcharts.js"
+= javascript_include_tag "https://code.highcharts.com/modules/data.js"
+.c_customer.afclr
+  .wrapper
+    .re_main.afclr
+      .ab_head.afclr
+        %h1= t('backtest', :name => @pie.name)
+      .in_iner_pag.afclr
+        %figure.highcharts-figure
+          #my_pie
+            %p.highcharts-description
+              Click and drag in the plot area to zoom in
+:javascript
+  $(document).ready(function(e) {
+     Highcharts.chart('my_pie', #{@chart_data})
+  });

@@ -13,7 +13,7 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :graphs, :only => [:create]
+  resources :graphs, :only => [:create, :show]
     
   # Don't want to update these in the pie form without submitting
   #resources :cryptos, :only => [:update]

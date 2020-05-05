@@ -24,6 +24,9 @@ class PiesController < ApplicationController
       perf = PieReturnsCalculator.new(@pie, [1, 3, 6, 12])
       perf.calculate
       perf.save
+      pc = PieBacktestCalculator.new(@pie)
+      pc.calculate
+      pc.save
       
       redirect_to py_path(@pie), :notice => 'Your pie was successfully updated.'
     else
