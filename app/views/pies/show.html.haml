@@ -34,7 +34,7 @@
               %td== #{perf[12][:total_return].to_f.round(2)}%
           %br             
         %center
-          = link_to t('edit_pie'), edit_py_path(1), :class => 'btn btn-primary'
+          = link_to t('edit_pie'), edit_py_path(@pie), :class => 'btn btn-primary'
           - if @pie.balancer_pool.bp_address.nil?
             %br
             %br
