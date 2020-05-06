@@ -14,7 +14,7 @@ Rails.application.routes.draw do
   end
 
   resources :graphs, :only => [:create, :show]
-  resources :balancer_pools, :only => [:show, :edit, :update] do
+  resources :balancer_pools, :only => [:show, :edit, :update, :create] do
     put 'update_balances', :on => :member
   end
     

@@ -1,21 +1,24 @@
 class BalanceCalculator
   @graph = nil
   @pie = nil
+  @pool = nil
   @starting_coins = nil
   @investment = nil
   
-  def initialize(pie, starting_coins, investment)
-    @pie = pie
+  def initialize(pool, starting_coins, investment)
+    @pool = pool
+    @pie = pool.pie
     @starting_coins = starting_coins
     @investment = investment
   end
   
   def calculate
-    {:result => false, 
-     :errors => [{:needs_pbtc => {:amount => 0.0125,
-                                  :address => '14a4aHGFggMCne6AuVszrtiDfSZbcCr51L'}}, 
-                 {:msg => 'You are short 0.158 ETH'},
-                 {:msg => 'AAVE is unavailable'}]}
+    {:result => true}
+    # {:result => false, 
+     # :errors => [{:needs_pbtc => {:amount => 0.0125,
+                                  # :address => '14a4aHGFggMCne6AuVszrtiDfSZbcCr51L'}}, 
+                 # {:msg => 'You are short 0.158 ETH'},
+                 # {:msg => 'AAVE is unavailable'}]}
   end
   
   def build_chart
@@ -29,7 +32,7 @@ class BalanceCalculator
     data[:series] = [build_primary_series]
     data[:drilldown] = {:series => build_drilldown_series}
     
-    data.to_json.html_safe
+    data
   end
   
 private

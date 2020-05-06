@@ -11,18 +11,56 @@ class BalancerPoolsController < ApplicationController
     @pool = BalancerPool.find(params[:id])
     sanity_check
     
-    # If this is the first time, the investment parameter comes from the pies#show input
-    # Otherwise, it's a hidden field on the form. Anyway, update it in the allocation
-    @investment = params[:investment]
+    # If this is the first time, the investment parameter comes from the pies#show input parameters
+    # Otherwise, it's already in the allocation, and won't be in the parameters
     @alloc = @pool.allocation.nil? ? Hash.new : YAML::load(@pool.allocation)
-    @alloc[:investment] = @investment
+    if params.has_key?(:investment)
+      @alloc[:investment] = params[:investment]
+      @alloc[:chart_data] = nil
+      @alloc[:errors] = nil
+      @pool.update_attribute(:allocation, YAML::dump(@alloc))              
+    end
+    
+    @investment = @alloc[:investment]    
+    @chart_data = @alloc[:chart_data].nil? ? nil : @alloc[:chart_data].to_json.html_safe
+    @errors = @alloc[:errors]
+  end
+
+  def update
+    @pool = BalancerPool.find(params[:id])
+    sanity_check
+
+    @alloc = YAML::load(@pool.allocation)
+    @coins_to_use = Hash.new
+        
+    params.keys.each do |key|
+      if key.starts_with?("spend_")
+        coin = key[6..key.size]
+        
+        @coins_to_use[coin] = params["balance_#{coin}"].gsub(",","").to_i
+      end
+    end 
+    
+    # Update list of coins
+    @alloc[:coins_to_use] = @coins_to_use
     @pool.update_attribute(:allocation, YAML::dump(@alloc))
     
-    @avatar = "https://www.gravatar.com/avatar/3643654c087726a2440e9284db1dd5d0"
-    @chart_data = @alloc[:chart_data]
-    @errors = @alloc[:errors].nil? ? [] : @alloc[:errors]
+    @calculator = BalanceCalculator.new(@pool, @coins_to_use, @alloc[:investment])
+
+    result = @calculator.calculate
+    
+    if result[:result]
+      @alloc[:chart_data] = @calculator.build_chart
+      @alloc[:errors] = nil  
+    else
+      @alloc[:errors] = result[:errors]
+      @alloc[:chart_data] = nil
+    end
+    @pool.update_attribute(:allocation, YAML::dump(@alloc))
+                 
+    redirect_to edit_balancer_pool_path(@pool)
   end
-  
+    
   def update_balances
     @pool = BalancerPool.find(params[:id])
     @alloc = YAML::load(@pool.allocation)
@@ -83,45 +121,13 @@ class BalancerPoolsController < ApplicationController
           puts @ens_avatar
           render :partial => 'balance_table', :locals => {:coins => @coins, :coins_to_use => @coins_to_use,
                                                           :address => @address, :ens_name => @alloc[:ens_name], 
-                                                          :avatar => @alloc[:ens_avatar]}
+                                                          :avatar => @alloc[:ens_avatar], :investment => @alloc[:investment]}
         else
           render :partial => 'error', :locals => {:error => @error}
         end
       end
       format.html { redirect_to root_path }     
     end         
-  end
-  
-  def update
-    @pie = current_user.pie
-    @pool = @pie.balancer_pool.nil? ? @pie.create_balancer_pool : @pie.balancer_pool
-    
-    sanity_check
-    
-    @investment = params[:investment]
-    @coins_to_use = {}
-    @chart_data = nil
-    
-    params.keys.each do |key|
-      if key.starts_with?("spend_")
-        coin = key[6..key.size]
-        @coins_to_use[coin] = params["balance_#{coin}"].gsub(",","").to_i
-      end
-    end 
-    
-    @pool.update_attribute(:allocation, YAML::dump({:investment => @investment,
-                                                    :coins_to_use => @coins_to_use}))
-
-    @calculator = BalanceCalculator.new(@pie, @coins_to_use, @investment)
-    result = @calculator.calculate
-    puts result
-    if result[:result]
-      @chart_data = @calculator.build_chart    
-    else
-      @errors = result[:errors]
-    end
-                 
-    redirect_to new_balancer_pool_path
   end
   
   def show

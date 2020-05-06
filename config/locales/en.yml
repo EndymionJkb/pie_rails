@@ -57,3 +57,5 @@ en:
   spend: 'Spend?'
   calculate: 'Calculate!'
   getting_balances: "Fetching balances..."
+  target: 'Target'
+  sorry: 'Sorry! %{errors}. Cannot create Balancer Pool.'

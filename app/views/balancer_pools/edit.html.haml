@@ -12,10 +12,9 @@
         .in_iner_pag.afclr
           = hidden_field_tag :has_chart, !@chart_data.nil?
           .row
-            .col-md-6
+            .col-md-5
               -# Update form
-              = form_with :url => balancer_pool_path, :method => :put do |f|
-                = hidden_field_tag :investment, @investment
+              = form_with :url => balancer_pool_path, :method => :put, :data => {:remote => false} do |f|
                 #coin_table
                   = t('getting_balances')
                   %br
@@ -23,37 +22,35 @@
                   %br
                   %br
                 = f.submit t('calculate'), :class => 'btn btn-primary'
-            .col-md-6
+            .col-md-7
               - if @chart_data.nil?
                 - unless @errors.nil? or 0 == @errors.count
+                  %p= t('sorry', :errors => pluralize(@errors.count, 'error'))
                   .alert.alert-danger{:style => 'width:420px'}
-                    - @errors.each do |error|
-                      - if error.has_key?(:needs_pbtc)
-                        = t('need_pbtc')
-                        %br
-                        %ul
-                          %li= t('trust_me', :amount => error[:needs_pbtc][:amount], :address => error[:needs_pbtc][:address])
-                          %li= link_to t('go_ptokens'), BalancerPool::PTOKENS_URL, :target => '_blank'
-                      - else
-                        %p= error[:msg]
+                    %ul
+                      - @errors.each do |error|
+                        - if error.has_key?(:needs_pbtc)
+                          %li= t('need_pbtc')
+                          %ol{:style => 'padding-left:50px'}
+                            %li= t('trust_me', :amount => error[:needs_pbtc][:amount], :address => error[:needs_pbtc][:address])
+                            %li= link_to t('go_ptokens'), BalancerPool::PTOKENS_URL, :target => '_blank'
+                        - else
+                          %li= error[:msg]
               - else
-                = form_with :url => balancer_pools_path(@pool), :method => :put do |f|
-                  %p
-                    = t('investment')
-                    %strong== : #{number_to_currency(@investment)}
+                %div{:style => 'margin-left:-200px'}
+                  = form_with :url => balancer_pools_path do |f|
                     %figure.highcharts-figure
                       #my_plan
                         %p.highcharts-description
                           The Pie chart with the plan!
-                  %center= f.submit t('create_pool'), :class => 'btn btn-primary'
+                    %center= f.submit t('create_pool'), :class => 'btn btn-primary'
 :javascript
-  $(document).ready(function(e) {
+  $(document).ready(function(e) {                 
      var has_chart = $('#has_chart').val();
      
      if ('true' == has_chart) {
          Highcharts.chart('my_plan', #{@chart_data});
-     }
-     
+     }     
     // Get coin balances
     var data = {'address':'0xBEf33200077A2A2AC3613aB92488b41FFc39AcE2',
                 'network':1,

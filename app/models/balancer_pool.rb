@@ -20,7 +20,7 @@ class BalancerPool < ApplicationRecord
   # The currencies we will check Metamask balances for
   VALID_CURRENCIES = ['USDC', 'USDT', 'DAI', 'rDAI', 'pBTC', 'ETH', 'LINK', 'BAT']
   PTOKENS_URL = 'https://dapp.ptokens.io/pbtc-on-eth'
-  INITIAL_INVESTMENT = 10000
+  INITIAL_INVESTMENT = 5000
   
   validates_length_of :uma_address, :bp_address, :is => 42, :allow_nil => true
   
