@@ -35,10 +35,10 @@
           %br             
         %center
           = link_to t('edit_pie'), edit_py_path(1), :class => 'btn btn-primary'
-          - if @pie.balancer_pool.nil?
+          - if @pie.balancer_pool.bp_address.nil?
             %br
             %br
-            = form_tag new_balancer_pool_path, :method => :get do
+            = form_tag edit_balancer_pool_path(@pie.balancer_pool), :method => :get do
               = label_tag :investment, t('investment')
               = number_field_tag :investment, BalancerPool::INITIAL_INVESTMENT, :min => 1000, :step => 100, :class => 'medium_input'
               &nbsp;&nbsp;&nbsp;&nbsp;

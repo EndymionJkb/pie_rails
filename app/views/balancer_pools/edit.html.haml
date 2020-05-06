@@ -1,0 +1,69 @@
+- provide(:title, t('balancer_pool'))
+= javascript_include_tag "https://code.highcharts.com/highcharts.js"
+= javascript_include_tag "https://code.highcharts.com/modules/data.js"
+= javascript_include_tag "https://code.highcharts.com/modules/drilldown.js"
+= render 'layouts/pie_header'
+.page-container
+  .c_customer.afclr
+    .wrapper
+      .re_main.afclr
+        .ab_head.afclr
+          %h1= t('create_balancer')
+        .in_iner_pag.afclr
+          = hidden_field_tag :has_chart, !@chart_data.nil?
+          .row
+            .col-md-6
+              -# Update form
+              = form_with :url => balancer_pool_path, :method => :put do |f|
+                = hidden_field_tag :investment, @investment
+                #coin_table
+                  = t('getting_balances')
+                  %br
+                  = image_tag 'loading.gif', :style => 'width:200px'
+                  %br
+                  %br
+                = f.submit t('calculate'), :class => 'btn btn-primary'
+            .col-md-6
+              - if @chart_data.nil?
+                - unless @errors.nil? or 0 == @errors.count
+                  .alert.alert-danger{:style => 'width:420px'}
+                    - @errors.each do |error|
+                      - if error.has_key?(:needs_pbtc)
+                        = t('need_pbtc')
+                        %br
+                        %ul
+                          %li= t('trust_me', :amount => error[:needs_pbtc][:amount], :address => error[:needs_pbtc][:address])
+                          %li= link_to t('go_ptokens'), BalancerPool::PTOKENS_URL, :target => '_blank'
+                      - else
+                        %p= error[:msg]
+              - else
+                = form_with :url => balancer_pools_path(@pool), :method => :put do |f|
+                  %p
+                    = t('investment')
+                    %strong== : #{number_to_currency(@investment)}
+                    %figure.highcharts-figure
+                      #my_plan
+                        %p.highcharts-description
+                          The Pie chart with the plan!
+                  %center= f.submit t('create_pool'), :class => 'btn btn-primary'
+:javascript
+  $(document).ready(function(e) {
+     var has_chart = $('#has_chart').val();
+     
+     if ('true' == has_chart) {
+         Highcharts.chart('my_plan', #{@chart_data});
+     }
+     
+    // Get coin balances
+    var data = {'address':'0xBEf33200077A2A2AC3613aB92488b41FFc39AcE2',
+                'network':1,
+                'pool_id':#{@pool.id},
+                'coins': {'ETH':10, 'USDC':2000, 'DAI':3000, 'BAT':500, 'KICK':888888, 'cDAI':17432}};
+    
+    jQuery.ajax({url:'#{update_balances_balancer_pool_path(@pool)}.js',
+                 data: data,
+                 type: "PUT",
+                 success: function(data) { $('#coin_table').html(data); },
+                 error: function() { alert('Oh noes!'); }, 
+                 async: false});
+  });

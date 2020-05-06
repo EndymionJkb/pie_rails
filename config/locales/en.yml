@@ -44,7 +44,7 @@ en:
   balancer_pool: 'Balancer Pool'
   create_balancer: 'Create Balancer Pool'
   view_balancer: 'View Balancer'
-  metamask_balances: 'Metamask Balances'
+  coin_balances: 'Portis Balances'
   token: 'Token'
   balance: 'Balance'
   need_pbtc: 'You need pBTC tokens!'
@@ -54,3 +54,6 @@ en:
   investment: 'Initial investment'
   about: 'About'
   what_is: 'What is My DeFi Pie?'
+  spend: 'Spend?'
+  calculate: 'Calculate!'
+  getting_balances: "Fetching balances..."

@@ -10,6 +10,14 @@ class BalanceCalculator
     @investment = investment
   end
   
+  def calculate
+    {:result => false, 
+     :errors => [{:needs_pbtc => {:amount => 0.0125,
+                                  :address => '14a4aHGFggMCne6AuVszrtiDfSZbcCr51L'}}, 
+                 {:msg => 'You are short 0.158 ETH'},
+                 {:msg => 'AAVE is unavailable'}]}
+  end
+  
   def build_chart
     data = Hash.new
     data[:chart] = {:type => 'pie'}

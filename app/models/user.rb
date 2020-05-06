@@ -42,6 +42,8 @@ class User < ApplicationRecord
       pie.create_stable_coin(:pct_curr1 => StableCoin::DEFAULT_PCT_CURR1,
                              :pct_curr2 => StableCoin::DEFAULT_PCT_CURR1,
                              :pct_curr3 => StableCoin::DEFAULT_PCT_CURR1)
+      
+      pie.create_balancer_pool
     end
   end
 end

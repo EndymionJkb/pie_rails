@@ -14,7 +14,9 @@ Rails.application.routes.draw do
   end
 
   resources :graphs, :only => [:create, :show]
-  resources :balancer_pools, :only => [:new, :create, :show]
+  resources :balancer_pools, :only => [:show, :edit, :update] do
+    put 'update_balances', :on => :member
+  end
     
   # Don't want to update these in the pie form without submitting
   #resources :cryptos, :only => [:update]
