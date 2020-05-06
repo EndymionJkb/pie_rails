@@ -1,0 +1,28 @@
+= t('uma_created_from')
+= t('equity_allocation', :pct => pie.pct_equities)
+%table.table.striped-table{:style => 'width:40%'}
+  %tr
+    %th Type
+    %th Name
+  - pie.etfs.each do |etf|
+    %tr
+      %td ETF
+      %td== #{etf.ticker} (#{etf.fund_name})
+  - pie.stocks.each do |stock|
+    %tr
+      %td Stock
+      %td= stock.company_name
+%br
+%p
+  == #{t('token_symbol')}:
+  %strong= pie.uma_token_symbol
+%p
+  == #{t('token_name')}:
+  %strong= pie.uma_token_name
+%p
+  == #{t('expiring_on')}:
+  %strong= pie.uma_expiry_date
+%br
+%p
+  == #{t('contract_address')}:
+  %strong= pool.uma_address

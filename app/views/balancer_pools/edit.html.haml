@@ -38,7 +38,8 @@
                           %li= error[:msg]
               - else
                 %div{:style => 'margin-left:-200px'}
-                  = form_with :url => balancer_pools_path do |f|
+                  = form_with :url => balancer_pools_path, :data => {:remote => false} do |f|
+                    = hidden_field_tag "pool_id", @pool.id
                     %figure.highcharts-figure
                       #my_plan
                         %p.highcharts-description

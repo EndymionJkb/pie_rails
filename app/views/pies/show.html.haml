@@ -44,7 +44,7 @@
               &nbsp;&nbsp;&nbsp;&nbsp;
               = submit_tag t('create_balancer'), :class => 'btn btn-primary'
           - else
-            = link_to t('view_balancer'), root_path, :class => 'btn btn-primary'
+            = link_to t('view_balancer'), balancer_pool_path(@pie.balancer_pool), :class => 'btn btn-primary'
 :javascript
   $(document).ready(function(e) {
      Highcharts.chart('my_pie', #{@chart_data})

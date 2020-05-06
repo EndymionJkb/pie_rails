@@ -186,13 +186,14 @@ class PiesController < ApplicationController
     
 private
   def pie_params
-    params.require(:pie).permit(:pct_gold, :pct_cash, :pct_crypto, :pct_equities, :name, 
+    params.require(:pie).permit(:pct_gold, :pct_cash, :pct_crypto, :pct_equities, :name, :uma_collateral,
+                                :uma_token_name, :uma_expiry_date,
                                 :crypto_attributes => [:id, :pct_curr1, :pct_curr2, :pct_curr3],
                                 :stable_coin_attributes => [:id, :pct_curr1, :pct_curr2, :pct_curr3])
   end
   
   def no_pool
-    unless current_user.pie.balancer_pool.nil?
+    unless current_user.pie.balancer_pool.bp_address.nil?
       redirect_to root_path, :alert => t('no_edit_allocation')
     end
   end

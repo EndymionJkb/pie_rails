@@ -4,16 +4,19 @@ require 'pie_calculator'
 #
 # Table name: pies
 #
-#  id           :bigint           not null, primary key
-#  user_id      :bigint
-#  pct_gold     :integer
-#  pct_crypto   :integer
-#  pct_cash     :integer
-#  pct_equities :integer
-#  name         :string(32)
-#  created_at   :datetime         not null
-#  updated_at   :datetime         not null
-#  performance  :text
+#  id              :bigint           not null, primary key
+#  user_id         :bigint
+#  pct_gold        :integer
+#  pct_crypto      :integer
+#  pct_cash        :integer
+#  pct_equities    :integer
+#  name            :string(32)
+#  created_at      :datetime         not null
+#  updated_at      :datetime         not null
+#  performance     :text
+#  uma_collateral  :string(8)
+#  uma_token_name  :string(32)
+#  uma_expiry_date :string(16)
 #
 class Pie < ApplicationRecord
   belongs_to :user, :optional => true
@@ -24,6 +27,12 @@ class Pie < ApplicationRecord
   DEFAULT_PCT_EQUITIES = 25
   
   MAX_EQUITIES = 8
+  
+  ALLOWED_UMA_COLLATERAL = ['ETH', 'aETH', 'DAI', 'aDAI', 'USDC', 'aUSDC', 'aWBTC', 'aLEND']
+  DEFAULT_COLLATERAL = 'aDAI'
+  UMA_EXPIRY_DATES = ['6/1/2020', '7/1/2020', '8/1/2020', '9/1/2020', '10/1/2020', '11/1/2020', '12/1/2020',
+                      '1/1/2021', '2/1/2021', '3/1/2021', '4/1/2021', '5/1/2021', '6/1/2021', '7/1/2021']
+  DEFAULT_EXPIRY_DATE = '6/1/2020'
   
   has_one :crypto
   has_one :stable_coin
@@ -120,6 +129,10 @@ class Pie < ApplicationRecord
     data.to_json.html_safe
   end
 
+  def uma_token_symbol
+    "MDPSNX#{self.id}"
+  end
+  
 private
   def build_primary_series
     # Primary series is Gold, Crypto, Cash, Equities

@@ -37,6 +37,18 @@
               = label_tag t('total')
               = number_field_tag t('total'), nil, {:disabled => true, :class => 'short_input', :id => 'pie_total'}
               %br
+              %div{:style => 'background-color:lightgray;'}
+                = f.label :uma_collateral, t('uma_collateral')
+                = f.select :uma_collateral, options_for_select(Pie::ALLOWED_UMA_COLLATERAL, f.object.uma_collateral || Pie::DEFAULT_COLLATERAL)
+                %br
+                = f.label :uma_token_name, t('token_name')
+                = f.text_field :uma_token_name
+                %br
+                %em= t('symbol_generated')
+                %br
+                = f.label :uma_expiry_date, t('expiry_date')
+                = f.select :uma_expiry_date, options_for_select(Pie::UMA_EXPIRY_DATES, f.object.uma_expiry_date || Pie::DEFAULT_EXPIRY_DATE)
+              %br
               = f.submit t('update_pie'), :class => 'btn btn-primary', :id => 'submit_pie'
           .col-sm-9
             %p{:style => 'margin-top:90px'}
@@ -46,7 +58,7 @@
               %input#cash_props{:type => 'text', :readonly => 'true', :style => 'width:450px;'}
               #cash_slider{:style => "margin-top:-20px; width:50%;"}
               %p{:style => 'margin-top:-30px'}
-              - if @pie.balancer_pool.nil?
+              - if @pie.balancer_pool.bp_address.nil?
                 %br= link_to t('edit_allocation'), edit_allocation_py_path(@pie), :class => 'btn btn-primary'
               - else
                 %br= t('no_edit_allocation')

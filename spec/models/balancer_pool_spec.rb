@@ -2,15 +2,13 @@
 #
 # Table name: balancer_pools
 #
-#  id           :bigint           not null, primary key
-#  pie_id       :bigint
-#  uma_address  :string(42)
-#  bp_address   :string(42)
-#  uma_expiry   :date
-#  allocation   :text
-#  created_at   :datetime         not null
-#  updated_at   :datetime         not null
-#  balancer_url :string
+#  id          :bigint           not null, primary key
+#  pie_id      :bigint
+#  uma_address :string(42)
+#  bp_address  :string(42)
+#  allocation  :text
+#  created_at  :datetime         not null
+#  updated_at  :datetime         not null
 #
 require 'rails_helper'
 

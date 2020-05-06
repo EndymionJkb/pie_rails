@@ -1,0 +1,15 @@
+- provide(:title, t('monitor_balancer'))
+= render 'layouts/pie_header'
+.page-container
+  .c_customer.afclr
+    .wrapper
+      .re_main.afclr
+        .ab_head.afclr
+          %h1== #{t('monitor_balancer')} for '#{@pie.name}'
+        .in_iner_pag.afclr
+          - unless @pool.uma_address.nil?
+            %h3 UMA Synthetic
+            = render :partial => 'uma_synthetic', :locals => {:pie => @pie, :pool => @pool}
+          %h3 Balancer
+          = render :partial => 'balancer', :locals => {:pool => @pool}
+          %br= link_to t('live_balancer'), @pool.balancer_url, :target => '_blank'

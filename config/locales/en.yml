@@ -18,6 +18,7 @@ en:
   reset: 'Reset to default'
   name: 'Pie name'
   allocation: 'Equity allocation'
+  equity_allocation: 'Equity allocation: %{pct}%%'
   current_allocation: 'Current allocation'
   check_add: "Check to add (max %{max_equities})"
   check_remove: 'Check to remove'
@@ -43,6 +44,7 @@ en:
   backtest: "Backtest '%{name}'"
   balancer_pool: 'Balancer Pool'
   create_balancer: 'Create Balancer Pool'
+  monitor_balancer: 'Monitor Balancer'
   view_balancer: 'View Balancer'
   coin_balances: 'Portis Balances'
   token: 'Token'
@@ -59,3 +61,13 @@ en:
   getting_balances: "Fetching balances..."
   target: 'Target'
   sorry: 'Sorry! %{errors}. Cannot create Balancer Pool.'
+  live_balancer: 'Click here to view in the Balancer Dapp'
+  uma_created_from: 'Token created from:'
+  uma_collateral: 'UMA Collateral'
+  token_name: 'UMA Token Name'
+  symbol_generated: 'Symbol will be generated'
+  expiry_date: 'Synthetic token expiration date'
+  token_symbol: 'UMA Token Symbol'
+  expiring_on: 'Expiring on'
+  contract_address: 'UMA Contract Address'
+  balancer_address: 'Balancer Address'

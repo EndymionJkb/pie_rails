@@ -6,6 +6,19 @@ class BalancerPoolsController < ApplicationController
   respond_to :html, :js
   
   before_action :authenticate_user!
+  
+  def create
+    @pool = BalancerPool.find(params[:pool_id])
+    sanity_check
+    
+    @pie = @pool.pie
+    # Actually create the pool, based on the calculations
+    @pool.update_attributes(:bp_address =>'0xc0b2B0C5376Cb2e6f73b473A7CAA341542F707Ce',
+                            :uma_address => '0x3b38561ec34300e97551aa1cded230c39c044d99')
+    @alloc = YAML::load(@pool.allocation)
+    
+    render 'show'
+  end
    
   def edit    
     @pool = BalancerPool.find(params[:id])
@@ -131,6 +144,10 @@ class BalancerPoolsController < ApplicationController
   end
   
   def show
+    @pool = BalancerPool.find(params[:id])
+    sanity_check
+    
+    @pie = @pool.pie
   end
   
 private
