@@ -44,6 +44,13 @@ class User < ApplicationRecord
                              :pct_curr3 => StableCoin::DEFAULT_PCT_CURR1)
       
       pie.create_balancer_pool
+      
+      perf = PieReturnsCalculator.new(pie, [1, 3, 6, 12])
+      perf.calculate
+      perf.save
+      pc = PieBacktestCalculator.new(pie)
+      pc.calculate
+      pc.save
     end
   end
 end

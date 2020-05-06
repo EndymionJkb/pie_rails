@@ -7,7 +7,7 @@
         .ab_head.afclr
           %h1== #{t('monitor_balancer')} for '#{@pie.name}'
         .in_iner_pag.afclr
-          - unless @pool.uma_address.nil?
+          - unless @pool.uma_address.nil? or 0 == @pie.pct_equities
             %h3 UMA Synthetic
             = render :partial => 'uma_synthetic', :locals => {:pie => @pie, :pool => @pool}
           %h3 Balancer
