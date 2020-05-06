@@ -11,12 +11,6 @@
           %input#proportions{:type => 'text', :readonly => 'true'}
           #slider-range
         %p
-          %strong Risk Tolerance
-          #slider-risk
-        %p
-          %strong Growth Potential
-          #slider-growth
-        %p
           %strong Crypto Focus
           %br
           = radio_button_tag 'focus', 'Large Cap', true
@@ -25,63 +19,58 @@
           = image_tag 'eth.png'
           = image_tag 'link.png'
           )
-          = radio_button_tag 'focus', 'Privacy'
-          Privacy (
-          = image_tag 'pZEC.png', :style => 'width:30px'
-          )
-          = radio_button_tag 'focus', 'DeFi'
-          DeFi (
-          = image_tag 'mkr.png'
-          = image_tag 'aLEND.svg', :style => 'width:30px'
-          = image_tag 'aKNC.svg', :style => 'width:30px'
-          )
           %br
-          = radio_button_tag 'focus', 'Gaming'
-          Gaming (
-          = image_tag 'enj.png', :style => 'width:30px'
-          = image_tag 'mana.png', :style => 'width:30px'
-          )
-          = radio_button_tag 'focus', 'Social Media'
-          Social Media (
-          = image_tag 'bat.png', :style => 'width:30px'
-          )
-          %br
-          = radio_button_tag 'focus', 'Prediction Market'
+          = radio_button_tag 'focus', 'Prediction Market', false, :disabled => 'disabled'
           Prediction Market (
           = image_tag 'hedg.png', :style => 'width:30px'
           = image_tag 'rep.png', :style => 'width:30px'
           = image_tag 'nmr.png', :style => 'width:30px'
           )
-          = radio_button_tag 'focus', 'Exchanges'
+          %br
+          = radio_button_tag 'focus', 'Exchanges', false, :disabled => 'disabled'
           Exchanges (
           = image_tag 'leo.png', :style => 'width:30px'
           = image_tag 'knc.png', :style => 'width:30px'
           = image_tag 'kcs.png', :style => 'width:30px'
           )
           %br
-          = radio_button_tag 'focus', 'Finance/Lending'
-          Exchanges (
+          = radio_button_tag 'focus', 'Finance', false, :disabled => 'disabled'
+          Finance (
           = image_tag 'cro.png', :style => 'width:30px'
           = image_tag 'nexo.png', :style => 'width:30px'
           = image_tag 'mco.png', :style => 'width:30px'
           )
+          %br
+          = radio_button_tag 'focus', 'Interest', false, :disabled => 'disabled'
+          Income (
+          = image_tag 'aWBTC.svg', :style => 'width:30px'
+          = image_tag 'aMKR.svg', :style => 'width:30px'
+          = image_tag 'aLINK.svg', :style => 'width:30px'
+          )
         %p
           %strong Stablecoins
+          %em (choose 3)
           %br
-          = check_box_tag :usdc, '1', true
+          = check_box_tag :usdc, '1', true, :disabled => 'disabled'
           = label_tag :usdc, 'USDC'
-          = check_box_tag :dai, '1', true
+          = check_box_tag :dai, '1', true, :disabled => 'disabled'
           = label_tag :dai, 'DAI'
-          = check_box_tag :dai, '1', true
-          = label_tag :dai, 'USDT'
-          = check_box_tag :dai
-          = label_tag :dai, 'TUSD'
-          = check_box_tag :dai
-          = label_tag :dai, 'GUSD'
-          = check_box_tag :dai
-          = label_tag :dai, 'BUSD'
-          = check_box_tag :dai
-          = label_tag :dai, 'UERS'
+          = check_box_tag :usdt, '1', true, :disabled => 'disabled'
+          = label_tag :usdt, 'USDT'
+          %br
+          = check_box_tag :tusd, '1', false, :disabled => 'disabled'
+          = label_tag :tusd, 'TUSD'
+          = check_box_tag :tcad, '1', false, :disabled => 'disabled'
+          = label_tag :tcad, 'TCAD'
+          = check_box_tag :taud, '1', false, :disabled => 'disabled'
+          = label_tag :taud, 'TAUD'
+          %br
+          = check_box_tag :tgbp, '1', false, :disabled => 'disabled'
+          = label_tag :tgbp, 'TGBP'
+          = check_box_tag :thkd, '1', false, :disabled => 'disabled'
+          = label_tag :thkd, 'THKD'
+          = check_box_tag :usds, '1', false, :disabled => 'disabled'
+          = label_tag :usds, 'USDS'
 :javascript
   $(document).ready(function(e) {
     $("#slider-risk").slider({
