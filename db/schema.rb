@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_05_06_044304) do
+ActiveRecord::Schema.define(version: 2020_05_06_192707) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -102,6 +102,8 @@ ActiveRecord::Schema.define(version: 2020_05_06_044304) do
     t.integer "g_priority", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "focus", limit: 32
+    t.string "stable_coins"
     t.index ["user_id"], name: "index_settings_on_user_id"
   end
 

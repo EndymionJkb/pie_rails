@@ -13,8 +13,6 @@
 class StableCoin < ApplicationRecord
   belongs_to :pie
   
-  SUPPORTED_CURRENCIES = ['USDC', 'DAI', 'USDT']
-
   DEFAULT_PCT_CURR1 = 34
   DEFAULT_PCT_CURR2 = 33
   DEFAULT_PCT_CURR3 = 33
@@ -23,11 +21,7 @@ class StableCoin < ApplicationRecord
                             :greater_than_or_equal_to => 0, :less_than_or_equal_to => 100
 
   def currency_name(idx)
-    if [0,1,2].include?(idx)
-      SUPPORTED_CURRENCIES[idx]
-    else
-      raise "Invalid currency index #{idx}"
-    end
+    Setting.first.stablecoin_name(idx)
   end
 
   def currency_pct(idx)

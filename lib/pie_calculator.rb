@@ -27,7 +27,11 @@ protected
     investment = STARTING_VALUE * pct
     puts "#{investment} = #{STARTING_VALUE} * #{pct}"
     start_date = PriceHistory.where(:coin => coin).where('date <= ?', start_date).maximum(:date)
-    
+    # Can happen if the data start late
+    if start_date.nil?
+      start_date = PriceHistory.where(:coin => coin).minimum(:date)
+    end
+
     return [investment, investment / PriceHistory.where(:coin => coin, :date => start_date).first.price]
   end
 end
@@ -49,6 +53,7 @@ class PieBacktestCalculator < PieCalculator
     has_equity = false
     # Don't rebalance cash
     fixed_cash = 0
+    settings = Setting.first
     
     if @pie.pct_gold > 0
       has_gold = true
@@ -61,34 +66,40 @@ class PieBacktestCalculator < PieCalculator
     end
     
     if @pie.pct_crypto > 0
-      has_crypto = true
-      
+      has_crypto = true      
       crypto = @pie.crypto
-      idx = 0
-      Crypto::SUPPORTED_CURRENCIES.each do |curr|
+      
+      settings.crypto_currency_range.each do |idx|
         if crypto.currency_pct(idx) > 0
-          currency = Crypto::SUPPORTED_CURRENCIES[idx]
+          currency = settings.crypto_currency_name(idx)
+          
           ref_percentages[currency] = @pie.pct_crypto.to_f / 100 * crypto.currency_pct(idx).to_f / 100
           start_date = PriceHistory.where(:coin => currency).where('date <= ?', start_date).maximum(:date)
+          # Can happen if data start late
+          if start_date.nil?
+            start_date = PriceHistory.where(:coin => currency).minimum(:date)
+          end
+          
           price = PriceHistory.where(:coin => currency, :date => start_date).first.price
+          
           last_prices[currency] = price
           last_shares[currency] = STARTING_VALUE * ref_percentages[currency] / price          
         end
-        idx += 1
       end
     end
     
     if @pie.pct_cash > 0
       cash = @pie.stable_coin
       fixed_cash = STARTING_VALUE * @pie.pct_cash / 100
-      idx = 0
-      StableCoin::SUPPORTED_CURRENCIES.each do |curr|
+
+      settings.stablecoin_range.each do |idx|
         if cash.currency_pct(idx) > 0
+          curr = settings.stablecoin_name(idx)
+          
           ref_percentages[curr] = cash.currency_pct(idx).to_f / 100 * @pie.pct_cash.to_f / 100
           last_prices[curr] = 1
           last_shares[curr] = STARTING_VALUE * ref_percentages[curr]
         end
-        idx += 1
       end
     end
     
@@ -177,10 +188,11 @@ class PieBacktestCalculator < PieCalculator
       
       if has_crypto
         crypto = @pie.crypto
-        idx = 0
-        Crypto::SUPPORTED_CURRENCIES.each do |curr|
+        
+        settings.crypto_currency_range.each do |idx|
           if crypto.currency_pct(idx) > 0
-            currency = Crypto::SUPPORTED_CURRENCIES[idx]
+            currency = settings.crypto_currency_name(idx)
+            
             if today_prices[currency].nil?
               price = last_prices[currency]
             else
@@ -190,7 +202,6 @@ class PieBacktestCalculator < PieCalculator
             
             value_today += last_shares[currency] * price
           end
-          idx += 1
         end
       end
             
@@ -238,16 +249,16 @@ class PieBacktestCalculator < PieCalculator
       
       if has_crypto
         crypto = @pie.crypto
-        idx = 0
-        Crypto::SUPPORTED_CURRENCIES.each do |curr|
+        
+        settings.crypto_currency_range.each do |idx|
           if crypto.currency_pct(idx) > 0
-            currency = Crypto::SUPPORTED_CURRENCIES[idx]
+            currency = settings.crypto_currency_name(idx)
+            
             old_shares = last_shares[currency]
             last_shares[currency] = ref_percentages[currency] * value_today / last_prices[currency]
             diff = (last_shares[currency] - old_shares) * last_prices[currency]
             daily_rebalance += diff          
           end
-          idx += 1
         end
       end
             
@@ -288,6 +299,8 @@ class PieReturnsCalculator < PieCalculator
 
   # Calculate  n-month return, and add to :returns => {3 => 2.43, 6 => -2.43}
   def calculate
+    settings = Setting.first
+    
     @periods.each do |period|
       investments = Hash.new
       # total_return is the sum of the individual returns
@@ -307,30 +320,30 @@ class PieReturnsCalculator < PieCalculator
       
       if @pie.pct_crypto > 0
         crypto = @pie.crypto
-        idx = 0
-        Crypto::SUPPORTED_CURRENCIES.each do |curr|
+       
+        settings.crypto_currency_range.each do |idx|
           if crypto.currency_pct(idx) > 0
-            currency = Crypto::SUPPORTED_CURRENCIES[idx]
+            currency = settings.crypto_currency_name(idx)
+            
             investments[currency] = calculate_initial_amount(currency, start_date, @pie.pct_crypto.to_f / 100 * crypto.currency_pct(idx).to_f / 100)
             
             coin_return = Utilities.geometric_sum(PriceHistory.where(:coin => currency).where('date >= ?', start_date).map(&:pct_change))
             investments[currency].push(coin_return.round(4))
           end
-          idx += 1
         end
       end
       
       if @pie.pct_cash > 0
         cash = @pie.stable_coin
         
-        idx = 0
-        StableCoin::SUPPORTED_CURRENCIES.each do |curr|
+        settings.stablecoin_range.each do |idx|
           if cash.currency_pct(idx) > 0
+            curr = settings.stablecoin_name(idx)
+            
             value = cash.currency_pct(idx).to_f / 100 * @pie.pct_cash.to_f / 100 * STARTING_VALUE
             # Assume 0 return
             investments[curr] = [value, value, 0]
           end
-          idx += 1
         end
       end
       

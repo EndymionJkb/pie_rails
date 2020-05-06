@@ -19,6 +19,21 @@ class SettingsController < ApplicationController
       format.html { redirect_to root_path }     
     end     
   end
+    
+  def update_coins
+    s = Setting.first
+    s.update_attribute(:focus, params[:crypto])
+    coins = []
+    params[:stable].each do |coin|
+      coins.push(coin)
+    end
+    s.update_attribute(:stable_coins, coins.join(","))
+    
+    respond_to do |format|       
+      format.js { head :ok  }
+      format.html { redirect_to root_path }     
+    end         
+  end
   
 private
   def settings_params

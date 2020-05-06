@@ -13,64 +13,65 @@
         %p
           %strong Crypto Focus
           %br
-          = radio_button_tag 'focus', 'Large Cap', true
+          = radio_button_tag 'focus', Setting::LARGE_CAP, Setting::LARGE_CAP == @setting.focus
           Large Cap (
-          = image_tag 'pBTC.png', :style => 'width:30px'
-          = image_tag 'eth.png'
-          = image_tag 'link.png'
+          = image_tag 'pBTC.png', :style => 'width:30px', :title => 'pBTC'
+          = image_tag 'eth.png', :style => 'width:30px', :title => 'ETH'
+          = image_tag 'link.png', :style => 'width:30px', :title => 'LINK'
           )
           %br
-          = radio_button_tag 'focus', 'Prediction Market', false, :disabled => 'disabled'
+          = radio_button_tag 'focus', Setting::PREDICTION, Setting::PREDICTION == @setting.focus
           Prediction Market (
-          = image_tag 'hedg.png', :style => 'width:30px'
-          = image_tag 'rep.png', :style => 'width:30px'
-          = image_tag 'nmr.png', :style => 'width:30px'
+          = image_tag 'hedg.png', :style => 'width:30px', :title => 'HEDG'
+          = image_tag 'rep.png', :style => 'width:30px', :title => 'REP'
+          = image_tag 'nmr.png', :style => 'width:30px', :title => 'NMR'
           )
           %br
-          = radio_button_tag 'focus', 'Exchanges', false, :disabled => 'disabled'
+          = radio_button_tag 'focus', Setting::EXCHANGES, Setting::EXCHANGES == @setting.focus
           Exchanges (
-          = image_tag 'leo.png', :style => 'width:30px'
-          = image_tag 'knc.png', :style => 'width:30px'
-          = image_tag 'kcs.png', :style => 'width:30px'
+          = image_tag 'leo.png', :style => 'width:30px', :title => 'LEO'
+          = image_tag 'knc.png', :style => 'width:30px', :title => 'KNC'
+          = image_tag 'kcs.png', :style => 'width:30px', :title => 'KCS'
           )
           %br
-          = radio_button_tag 'focus', 'Finance', false, :disabled => 'disabled'
+          = radio_button_tag 'focus', Setting::FINANCE, Setting::FINANCE == @setting.focus
           Finance (
-          = image_tag 'cro.png', :style => 'width:30px'
-          = image_tag 'nexo.png', :style => 'width:30px'
-          = image_tag 'mco.png', :style => 'width:30px'
+          = image_tag 'cro.png', :style => 'width:30px', :title => 'CRO'
+          = image_tag 'nexo.png', :style => 'width:30px', :title => 'NEXO'
+          = image_tag 'mco.png', :style => 'width:30px', :title => 'MCO'
           )
           %br
-          = radio_button_tag 'focus', 'Interest', false, :disabled => 'disabled'
+          = radio_button_tag 'focus', Setting::INTEREST, Setting::INTEREST == @setting.focus
           Income (
-          = image_tag 'aWBTC.svg', :style => 'width:30px'
-          = image_tag 'aMKR.svg', :style => 'width:30px'
-          = image_tag 'aLINK.svg', :style => 'width:30px'
+          = image_tag 'aWBTC.svg', :style => 'width:30px', :title => 'aWBTC'
+          = image_tag 'aMKR.svg', :style => 'width:30px', :title => 'aMKR'
+          = image_tag 'aLINK.svg', :style => 'width:30px', :title => 'aLINK'
           )
         %p
           %strong Stablecoins
           %em (choose 3)
           %br
-          = check_box_tag :usdc, '1', true, :disabled => 'disabled'
+          = check_box_tag :usdc, '1', @setting.stablecoin_selected?('usdc')
           = label_tag :usdc, 'USDC'
-          = check_box_tag :dai, '1', true, :disabled => 'disabled'
+          = check_box_tag :dai, '1', @setting.stablecoin_selected?('dai')
           = label_tag :dai, 'DAI'
-          = check_box_tag :usdt, '1', true, :disabled => 'disabled'
+          = check_box_tag :usdt, '1', @setting.stablecoin_selected?('usdt')
           = label_tag :usdt, 'USDT'
           %br
-          = check_box_tag :tusd, '1', false, :disabled => 'disabled'
+          = check_box_tag :tusd, '1', @setting.stablecoin_selected?('tusd')
           = label_tag :tusd, 'TUSD'
-          = check_box_tag :tcad, '1', false, :disabled => 'disabled'
+          = check_box_tag :tcad, '1', @setting.stablecoin_selected?('tcad')
           = label_tag :tcad, 'TCAD'
-          = check_box_tag :taud, '1', false, :disabled => 'disabled'
+          = check_box_tag :taud, '1', @setting.stablecoin_selected?('taud')
           = label_tag :taud, 'TAUD'
           %br
-          = check_box_tag :tgbp, '1', false, :disabled => 'disabled'
+          = check_box_tag :tgbp, '1', @setting.stablecoin_selected?('tgbp')
           = label_tag :tgbp, 'TGBP'
-          = check_box_tag :thkd, '1', false, :disabled => 'disabled'
+          = check_box_tag :thkd, '1', @setting.stablecoin_selected?('thkd')
           = label_tag :thkd, 'THKD'
-          = check_box_tag :usds, '1', false, :disabled => 'disabled'
+          = check_box_tag :usds, '1', @setting.stablecoin_selected?('usds')
           = label_tag :usds, 'USDS'
+        = link_to 'Update Crypto/Stablecoins', '#', :class => 'btn btn-primary', :onclick => 'update_settings();'
 :javascript
   $(document).ready(function(e) {
     $("#slider-risk").slider({

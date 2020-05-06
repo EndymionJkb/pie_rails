@@ -3,7 +3,10 @@ Rails.application.routes.draw do
   # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
   root :to => 'pies#show'
   
-  resources :settings, :only => [:show, :update]
+  resources :settings, :only => [:show, :update] do
+    put 'update_coins', :on => :collection
+  end
+  
   resources :pies, :only => [:show, :edit, :update, :index] do
     member do
       put 'reset'
