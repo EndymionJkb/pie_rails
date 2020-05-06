@@ -57,7 +57,7 @@ class Pie < ApplicationRecord
   end
   
   def backtest_data
-    perf = YAML::load(self.performance)
+    perf = YAML::load(self.performance) rescue Hash.new
     unless perf.has_key?(:backtest_ts)
       pc = PieBacktestCalculator.new(self)
       pc.calculate

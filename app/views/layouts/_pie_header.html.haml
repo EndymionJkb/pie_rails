@@ -8,15 +8,12 @@
         %ul.nav-menu.afclr
           %li= link_to t('about'), about_path
           - if signed_in?
-            %li= link_to t('pies'), py_path(1)
+            %li= link_to t('pies'), py_path(current_user.pie)
             %li= link_to t('models'), pies_path
             %li= link_to t('backtest_title'), graph_path(1)
             %li= link_to t('settings'), setting_path(1)
           - else
             %li= link_to t('home'), root_path
-            %li= link_to t('about'), root_path #TODO about_path
-            %li= link_to t('help'), root_path #TODO help_path
-            %li= link_to t('contact'), root_path #TODO contact_path
       .r_hright
         %ul.h_hrih.afclr
           - if signed_in?
