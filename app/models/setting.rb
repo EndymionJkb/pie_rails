@@ -22,6 +22,9 @@ class Setting < ApplicationRecord
   EXCHANGES = 'Exchanges'
   FINANCE = 'Finance'
   INTEREST = 'Interest'
+  CATEGORIES = [LARGE_CAP, PREDICTION, EXCHANGES, FINANCE, INTEREST]
+  
+  STABLE_COINS = ['USDC', 'DAI', 'USDT', 'TUSD', 'TCAD', 'TAUD', 'TGBP', 'THKD', 'USDS']
   
   belongs_to :user
   
@@ -37,6 +40,22 @@ class Setting < ApplicationRecord
     [0,1,2]
   end
   
+  def all_currencies
+    STABLE_COINS.dup + all_cryptos
+  end
+  
+  def all_cryptos
+    cryptos = []
+    CATEGORIES.each do |cat|
+      crypto_currency_range.each do |idx|
+        cryptos.push(crypto_currency_name(idx, cat))
+      end
+    end 
+    
+    cryptos  
+  end
+  
+  # 3 current ones
   def supported_crypto_currencies
     cryptos = []
     crypto_currency_range.each do |idx|
@@ -46,10 +65,11 @@ class Setting < ApplicationRecord
     cryptos
   end
   
+  # 3 current ones
   def supported_stablecoins
     coins = []
     stablecoin_range.each do |idx|
-      cryptos.push(stablecoin_name(idx))
+      coins.push(stablecoin_name(idx))
     end
     
     coins
@@ -60,8 +80,12 @@ class Setting < ApplicationRecord
     coins.include?(coin)
   end
   
-  def crypto_currency_name(idx)
-    case self.focus
+  def crypto_currency_name(idx, use_focus=nil)
+    if use_focus.nil?
+      use_focus = self.focus
+    end
+    
+    case use_focus
     when LARGE_CAP
       case idx
       when 0

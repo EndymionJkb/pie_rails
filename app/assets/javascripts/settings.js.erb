@@ -1,6 +1,6 @@
 function update_settings() {
   var crypto_selection = $('input[name="focus"]:checked').val();
-  var coins = ['usdc', 'dai', 'usdt', 'tusd', 'tcad', 'taud', 'tgbp', 'thkd', 'usds'];
+  var coins = <%= Setting::STABLE_COINS %>;
   var selected_coins = [];
   
   for (var idx = 0; idx < coins.length; idx++) {
