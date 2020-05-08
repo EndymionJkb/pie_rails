@@ -39,7 +39,7 @@
               %br
               %div{:style => 'background-color:lightgray;'}
                 = f.label :uma_collateral, t('uma_collateral')
-                = f.select :uma_collateral, options_for_select(Pie::ALLOWED_UMA_COLLATERAL, f.object.uma_collateral || Pie::DEFAULT_COLLATERAL)
+                = f.select :uma_collateral, options_for_select(Setting::ALLOWED_UMA_COLLATERAL, f.object.uma_collateral || Setting::DEFAULT_COLLATERAL)
                 %br
                 = f.label :uma_token_name, t('token_name')
                 = f.text_field :uma_token_name

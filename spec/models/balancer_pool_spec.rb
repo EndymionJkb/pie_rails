@@ -21,7 +21,6 @@ RSpec.describe BalancerPool, type: :model do
   it "should respond to everything" do
     expect(pool).to respond_to(:uma_address)
     expect(pool).to respond_to(:bp_address)
-    expect(pool).to respond_to(:uma_expiry)
     expect(pool).to respond_to(:allocation)
     expect(pool).to respond_to(:balancer_url)
   end

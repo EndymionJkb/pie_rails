@@ -39,16 +39,45 @@ FactoryBot.define do
     pct_cash { Random.rand(100) }
     pct_crypto { Random.rand(100) }
     pct_equities { Random.rand(100) }
-    
+    uma_expiry_date { generate(:random_future_date) }
     name { generate(:random_product) }
-  end
+    
+    factory :usdt_pie do
+      pct_gold { 0 }
+      pct_cash { 100 }
+      pct_crypto { 0 }
+      pct_equities { 0 }
 
+      after :create do |pie|
+        create :stable_coin, :pie => pie, :pct_curr1 => 0, :pct_curr2 => 0, :pct_curr3 => 100
+      end
+    end
+  end
+  
+  factory :setting do 
+    user 
+    
+    e_priority { Random.rand(100) }
+    s_priority { Random.rand(100) }
+    g_priority { Random.rand(100) }
+    
+    focus { 'Large Cap' }
+    stable_coins { 'USDC,DAI,USDT' }
+  end
+  
+  factory :stable_coin do
+    pie
+    
+    pct_curr1 { Random.rand(100) }
+    pct_curr2 { Random.rand(100) }
+    pct_curr3 { Random.rand(100) }
+  end
+  
   factory :balancer_pool do
     pie
     
     uma_address { generate(:random_eth_address) }
     bp_address { generate(:random_eth_address) }
-    uma_expiry { generate(:random_future_date) }
     allocation { generate(:random_paragraph) }
   end    
 

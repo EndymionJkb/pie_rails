@@ -28,8 +28,6 @@ class Pie < ApplicationRecord
   
   MAX_EQUITIES = 8
   
-  ALLOWED_UMA_COLLATERAL = ['ETH', 'aETH', 'DAI', 'aDAI', 'USDC', 'aUSDC', 'aWBTC', 'aLEND']
-  DEFAULT_COLLATERAL = 'aDAI'
   UMA_EXPIRY_DATES = ['6/1/2020', '7/1/2020', '8/1/2020', '9/1/2020', '10/1/2020', '11/1/2020', '12/1/2020',
                       '1/1/2021', '2/1/2021', '3/1/2021', '4/1/2021', '5/1/2021', '6/1/2021', '7/1/2021']
   DEFAULT_EXPIRY_DATE = '6/1/2020'
@@ -37,6 +35,7 @@ class Pie < ApplicationRecord
   has_one :crypto
   has_one :stable_coin
   has_one :balancer_pool
+  has_one :setting, :through => :user
   
   has_and_belongs_to_many :stocks
   has_and_belongs_to_many :etfs
@@ -46,14 +45,95 @@ class Pie < ApplicationRecord
   
   validates_numericality_of :pct_gold, :pct_crypto, :pct_cash, :pct_equities, :only_integer => true,
                             :greater_than_or_equal_to => 0, :less_than_or_equal_to => 100
+
+  ALLOWED_UMA_COLLATERAL = ['ETH', 'aETH', 'DAI', 'aDAI', 'USDC', 'aUSDC', 'aWBTC', 'aLEND']
   
-  def amount_pbtc_needed(total_value)
-    if self.pct_crypto > 0 and crypto.pct_curr1 > 0
-      btc_date = PriceHistory.where(:coin => 'pBTC').maximum(:date)
-      price = PriceHistory.where(:coin => 'pBTC', :date => btc_date).first.price
-      
-      total_value * self.pct_crypto * crypto.pct_curr1 / price
+  # Return as percentage (0-1) - divide by 100 here, so we don't need to in the caller
+  # Uses Setting, so none of these _needs methods can be called on a model portfolio (with no user)
+  def crypto_needs
+    needs = Hash.new
+    
+    # PAXG is on Uniswap, so it's just a regular crypto
+    if self.pct_gold > 0
+      needs[Setting::GOLD] = self.pct_gold.to_f / 100
     end
+    
+    # Add in the coins from the crypto category (if they're not pTokens or aTokens)
+    if self.pct_crypto > 0
+      setting.crypto_currency_range.each do |idx|
+        name = self.crypto.currency_name(idx)
+        # Cryptos can be pTokens or aTokens - and the percentage can also be 0
+        unless 0 == self.crypto.currency_pct(idx) or ['a','p'].include?(name[0])
+          needs[name] = self.pct_crypto.to_f / 100 * self.crypto.currency_pct(idx).to_f / 100
+        end
+      end
+    end
+
+    # If there are equities, and the collateral is a crypto, add that in as well
+    if self.pct_equities > 0 and Setting::CRYPTO_COLLATERAL.include?(self.uma_collateral)
+      needs[self.uma_collateral] = self.pct_equities.to_f / 100
+    end
+        
+    needs
+  end
+  
+  def stable_coin_needs
+    needs = Hash.new
+    
+    if self.pct_cash > 0
+      setting.stablecoin_range.each do |idx|
+        unless 0 == self.stable_coin.currency_pct(idx)
+          needs[self.stable_coin.currency_name(idx)] = self.pct_cash.to_f / 100 * 
+                                                       self.stable_coin.currency_pct(idx).to_f / 100
+        end
+      end
+    end
+
+    # If there are equities, and the collateral is a stable coin, add that in as well
+    if self.pct_equities > 0 and Setting::STABLE_COLLATERAL.include?(self.uma_collateral)
+      needs[self.uma_collateral] = self.pct_equities.to_f / 100
+    end
+    
+    needs
+  end
+  
+  def ptoken_needs
+    needs = Hash.new
+
+    if self.pct_crypto > 0
+      setting.crypto_currency_range.each do |idx|
+        name = self.crypto.currency_name(idx)
+        # Cryptos can be pTokens or aTokens - and the percentage can also be 0
+        unless 0 == self.crypto.currency_pct(idx) or 'p' != name[0]
+          needs[name] = self.pct_crypto.to_f / 100 * self.crypto.currency_pct(idx).to_f / 100
+        end
+      end
+    end    
+    
+    # Collateral cannot be a pToken
+    
+    needs
+  end
+  
+  def aave_needs
+    needs = Hash.new
+
+    if self.pct_crypto > 0
+      setting.crypto_currency_range.each do |idx|
+        name = self.crypto.currency_name(idx)
+        # Cryptos can be pTokens or aTokens - and the percentage can also be 0
+        unless 0 == self.crypto.currency_pct(idx) or 'a' != name[0]
+          needs[name] = self.pct_crypto.to_f / 100 * self.crypto.currency_pct(idx).to_f / 100
+        end
+      end
+    end    
+    
+    # If there are equities, and the collateral is an AAVE coin, add that in as well
+    if self.pct_equities > 0 and Setting::AAVE_COLLATERAL.include?(self.uma_collateral)
+      needs[self.uma_collateral] = self.pct_equities.to_f / 100
+    end
+    
+    needs    
   end
   
   def backtest_data

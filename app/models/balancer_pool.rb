@@ -23,8 +23,4 @@ class BalancerPool < ApplicationRecord
   def balancer_url
     "https://pools.balancer.exchange/#/pool/#{self.bp_address}"
   end
-
-  def self.permitted_coins
-    ['ETH', 'USDC', 'pBTC', 'USDT', 'DAI', 'LINK', 'BAT', 'KICK']
-  end
 end

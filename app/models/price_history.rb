@@ -15,6 +15,10 @@ class PriceHistory < ApplicationRecord
   validates_length_of :coin, :maximum => 8
   validates_numericality_of :price, :greater_than => 0
   
+  def self.latest_price(coin)
+    PriceHistory.where(:coin => coin).order('date DESC').first.price rescue nil
+  end
+  
   def self.compute_pct_change
     coins = PriceHistory.all.map(&:coin).uniq
     

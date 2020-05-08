@@ -58,11 +58,11 @@ class PieBacktestCalculator < PieCalculator
     if @pie.pct_gold > 0
       has_gold = true
       
-      ref_percentages['PAXG'] = @pie.pct_gold.to_f / 100
-      start_date = PriceHistory.where(:coin => 'PAXG').where('date <= ?', start_date).maximum(:date)
-      price = PriceHistory.where(:coin => 'PAXG', :date => start_date).first.price
-      last_prices['PAXG'] = price
-      last_shares['PAXG'] = STARTING_VALUE * ref_percentages['PAXG'] / price
+      ref_percentages[Setting::GOLD] = @pie.pct_gold.to_f / 100
+      start_date = PriceHistory.where(:coin => Setting::GOLD).where('date <= ?', start_date).maximum(:date)
+      price = PriceHistory.where(:coin => Setting::GOLD, :date => start_date).first.price
+      last_prices[Setting::GOLD] = price
+      last_shares[Setting::GOLD] = STARTING_VALUE * ref_percentages[Setting::GOLD] / price
     end
     
     if @pie.pct_crypto > 0
@@ -176,14 +176,14 @@ class PieBacktestCalculator < PieCalculator
       # Update num_shares for each holding - ref_pct[holding] * value_today/price_today = new_shares
       if has_gold
         # Fall back to last price if it's not present today
-        if today_prices['PAXG'].nil?
-          price = last_prices['PAXG']
+        if today_prices[Setting::GOLD].nil?
+          price = last_prices[Setting::GOLD]
         else
-          price = today_prices['PAXG']
-          last_prices['PAXG'] = price
+          price = today_prices[Setting::GOLD]
+          last_prices[Setting::GOLD] = price
         end
         
-        value_today += last_shares['PAXG'] * price
+        value_today += last_shares[Setting::GOLD] * price
       end
       
       if has_crypto
@@ -241,9 +241,9 @@ class PieBacktestCalculator < PieCalculator
       if has_gold
         # Update num_shares for each holding - ref_pct[holding] * value_today/price_today = new_shares
         # last_prices has already been updated to today's price
-        old_shares = last_shares['PAXG']
-        last_shares['PAXG'] = ref_percentages['PAXG'] * value_today / last_prices['PAXG']
-        diff = (last_shares['PAXG'] - old_shares) * last_prices['PAXG']
+        old_shares = last_shares[Setting::GOLD]
+        last_shares[Setting::GOLD] = ref_percentages[Setting::GOLD] * value_today / last_prices[Setting::GOLD]
+        diff = (last_shares[Setting::GOLD] - old_shares) * last_prices[Setting::GOLD]
         daily_rebalance += diff
       end
       
@@ -312,10 +312,10 @@ class PieReturnsCalculator < PieCalculator
       start_date = PriceHistory.all.maximum(:date) - period.months
       
       if @pie.pct_gold > 0
-        investments['PAXG'] = calculate_initial_amount('PAXG', start_date, @pie.pct_gold.to_f / 100)
+        investments[Setting::GOLD] = calculate_initial_amount(Setting::GOLD, start_date, @pie.pct_gold.to_f / 100)
         
-        gold_return = Utilities.geometric_sum(PriceHistory.where(:coin => 'PAXG').where('date >= ?', start_date).map(&:pct_change))
-        investments['PAXG'].push(gold_return.round(4))
+        gold_return = Utilities.geometric_sum(PriceHistory.where(:coin => Setting::GOLD).where('date >= ?', start_date).map(&:pct_change))
+        investments[Setting::GOLD].push(gold_return.round(4))
       end
       
       if @pie.pct_crypto > 0

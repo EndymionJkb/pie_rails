@@ -58,7 +58,7 @@ class BalancerPoolsController < ApplicationController
     @alloc[:coins_to_use] = @coins_to_use
     @pool.update_attribute(:allocation, YAML::dump(@alloc))
     
-    @calculator = BalanceCalculator.new(@pool, @coins_to_use, @alloc[:investment])
+    @calculator = BalanceCalculator.new(@pool.pie, @coins_to_use, @alloc[:investment])
 
     result = @calculator.calculate
     

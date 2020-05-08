@@ -24,7 +24,7 @@
                 = render :partial => 'table_graph', :locals => {:model => "#{model.id}_model", :label => model.name, :subtitle => subtitle, :data => {'Gold' => model.pct_gold, 'Crypto' => model.pct_crypto, 'Cash' => model.pct_cash, 'Equities' => model.pct_equities}}
               %td
                 - if model.pct_gold > 0
-                  = render :partial => 'table_graph', :locals => {:model => "#{model.id}_gold", :label => 'Gold', :subtitle => '', :data => {'PAXG' => 100}}
+                  = render :partial => 'table_graph', :locals => {:model => "#{model.id}_gold", :label => 'Gold', :subtitle => '', :data => {Setting::GOLD => model.pct_gold }}
               %td
                 - if model.pct_crypto > 0
                   = render :partial => 'table_graph', :locals => {:model => "#{model.id}_crypto", :label => 'Crypto', :subtitle => '', :data => {model.crypto.currency_name(0) => model.crypto.pct_curr1, model.crypto.currency_name(1) => model.crypto.pct_curr2, model.crypto.currency_name(2) => model.crypto.pct_curr3}}

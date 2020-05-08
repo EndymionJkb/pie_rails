@@ -25,6 +25,14 @@ class Setting < ApplicationRecord
   CATEGORIES = [LARGE_CAP, PREDICTION, EXCHANGES, FINANCE, INTEREST]
   
   STABLE_COINS = ['USDC', 'DAI', 'USDT', 'TUSD', 'TCAD', 'TAUD', 'TGBP', 'THKD', 'USDS']
+  GOLD = 'PAXG'
+  
+  CRYPTO_COLLATERAL = ['ETH']
+  STABLE_COLLATERAL = ['DAI', 'USDC']
+  AAVE_COLLATERAL = ['aETH', 'aDAI', 'aUSDC', 'aWBTC', 'aLEND']
+  
+  ALLOWED_UMA_COLLATERAL = CRYPTO_COLLATERAL + STABLE_COLLATERAL + AAVE_COLLATERAL
+  DEFAULT_COLLATERAL = 'aDAI'
   
   belongs_to :user
   
@@ -39,9 +47,27 @@ class Setting < ApplicationRecord
   def stablecoin_range
     [0,1,2]
   end
-  
+    
   def all_currencies
-    STABLE_COINS.dup + all_cryptos
+    all = STABLE_COINS.dup + all_cryptos + [GOLD]
+    ALLOWED_UMA_COLLATERAL.each do |c|
+      all.push(c) unless all.include?(c)
+    end
+    
+    # Check for AAVE counterpart coins!
+    to_add = []
+    all.each do |coin|
+      if 'a' == coin[0]
+        base = coin[1,coin.size]
+        to_add.push(base) unless all.include?(base)
+      end
+    end
+    
+    to_add.each do |coin|
+      all.push(coin)
+    end
+    
+    all
   end
   
   def all_cryptos
