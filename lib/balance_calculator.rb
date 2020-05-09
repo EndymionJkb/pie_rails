@@ -4,22 +4,27 @@ class BalanceCalculator
   @pool = nil
   @starting_coins = nil
   @investment = nil
+  @setting = nil
   
   COIN_LIST_EMPTY = 'Start coin list empty'
   INVALID_INVESTMENT = 'Invalid initial investment'
   INVALID_PIE = 'Invalid Pie'
   INSUFFICIENT_FUNDS = 'Insufficient Funds'
+  # Need at least this much, for gas costs
+  ETH_RESERVE = 0.5
   
   def initialize(pie, starting_coins, investment)
-    raise 'Invalid investment' if investment <= 0
+    @investment = investment.to_i
+
+    raise 'Invalid investment' if @investment <= 0
     
     @pie = pie
     @starting_coins = starting_coins
-    @investment = investment
     # Plan for conversion
     @disposition = Hash.new
     @errors = []
     @ptoken_errors = []
+    @setting = Setting.first
   end
   
   # Algorithm - try to keep it simple; optimizing would be really hard!
@@ -60,7 +65,6 @@ class BalanceCalculator
     aave_in = Hash.new
     ptokens_in = Hash.new
     
-    settings = Setting.first
     @errors = []
     @ptoken_errors = []
     
@@ -76,6 +80,13 @@ class BalanceCalculator
       end
     end
     
+    # Adjust for ETH reserve
+    if crypto_in['ETH'].to_f < ETH_RESERVE
+      return {:result => false, :errors => [{:msg => "Missing ETH reserves (at least #{ETH_RESERVE} required)"}]}
+    else
+      crypto_in['ETH'] -= ETH_RESERVE
+    end
+    
     # Now what does the Pie need?
     # The pie doesn't know prices or the amount,
     #   so these numbers are percentages (0-1; already normalized to decimal)
@@ -89,7 +100,7 @@ class BalanceCalculator
                                                                stable_out, crypto_out, ptokens_out, aave_out)    
     
     if @errors.empty? and @ptoken_errors.empty?
-      result = {:result => true}
+      result = {:result => true, :disposition => @disposition}
     else 
       result = {:result => false, :errors => []}
       @errors.each do |err|
@@ -101,13 +112,6 @@ class BalanceCalculator
     end
     
     result
-    #{:result => true}
-    # {:result => false, 
-    #  :errors => [{:ptoken => {:coin => 'pBTC',
-    #                           :amount => 0.0125,
-    #                           :address => '14a4aHGFggMCne6AuVszrtiDfSZbcCr51L'}}, 
-                 # {:msg => 'You are short 0.158 ETH'},
-                 # {:msg => 'AAVE is unavailable'}]}
   end
   
   # Mainly do this to facilitate testing - this takes hashes in, and produces hashes out
@@ -125,7 +129,7 @@ class BalanceCalculator
       amount_needed = pct * @investment / price
     
       if ptokens_in[coin_out].to_f >= amount_needed
-        @disposition[coin_out] = "Take #{amount_needed.round(2)} #{coin_out} from balance"
+        @disposition[coin_out] = ["Take #{amount_needed.round(2)} #{coin_out} from balance"]
       else
         @ptoken_errors.push({:coin => coin_out, :amount => amount_needed, :address => '14a4aHGFggMCne6AuVszrtiDfSZbcCr51L'})
       end
@@ -148,7 +152,7 @@ class BalanceCalculator
         end
       else        # Could get here if stable_in has no USDT key - nil.to_f = 0
         shortfall = (amount_needed - stable_in['USDT'].to_f).ceil
-        @errors.push("Short #{shortfall.round(2)} USDT")        
+        @errors.push("Short #{shortfall.round(2)} USDT for Cash allocation")        
       end
       
       # Remove it from stable_out so that it doesn't trigger *again* when calculating general stable coins
@@ -161,7 +165,7 @@ class BalanceCalculator
     # Don't try to figure it out in the middle - do all the direct transfers we can first
     shortfall_amounts = calculate_shortfalls(stable_out, stable_in)
             
-    if shortfall_amounts.empty? or address_shortfalls(shortfall_amounts, stable_in)
+    if shortfall_amounts.empty? or address_shortfalls(shortfall_amounts, stable_in, 'Cash')
       # Now try to get AAVE coins, if they're not already there
       # If we already have the AAVE coin, use it
       # If we have it but not enough, or don't have it, check if we have the corresponding asset
@@ -233,7 +237,7 @@ class BalanceCalculator
               @disposition[coin].push("Deposit #{amount_needed.round(2)} ETH to AAVE for #{coin}")
               crypto_in['ETH'] -= amount_needed
             else
-              @errors.push("Short #{amount_needed.round(2)} ETH to swap for #{original_amount.round(2)} of #{coin}")
+              @errors.push("Short #{amount_needed.round(2)} ETH to swap for #{original_amount.round(2)} of #{coin} in AAVE allocation (or collateral)")
             end
           end
         end
@@ -242,15 +246,14 @@ class BalanceCalculator
       # Now try to find all the crypto tokens
       # Either we have them, or can buy them with stable coins
       shortfall_amounts = calculate_shortfalls(crypto_out, crypto_in)
-      puts shortfall_amounts
       
-      address_shortfalls(shortfall_amounts, stable_in) unless shortfall_amounts.empty?
+      address_shortfalls(shortfall_amounts, stable_in, 'Crypto') unless shortfall_amounts.empty?
     end    
     
     return @disposition, @errors, @ptoken_errors
   end
 
-  def build_chart
+  def build_chart(disposition)
     data = Hash.new
     data[:chart] = {:type => 'pie'}
     data[:title] = {:text => "#{@pie.name} Plan"}
@@ -259,7 +262,7 @@ class BalanceCalculator
     data[:tooltip] = {:headerFormat => '<span style="font-size:11px">{series.name}</span><br>',
                       :pointFormat => '<span style="color:{point.color}">{point.desc}</span>: <b>{point.y:.2f}%</b> of total<br/>'}
     data[:series] = [build_primary_series]
-    data[:drilldown] = {:series => build_drilldown_series}
+    data[:drilldown] = {:series => build_drilldown_series(disposition)}
     
     data
   end
@@ -277,7 +280,6 @@ class BalanceCalculator
     Setting.first.all_currencies.each do |curr|
       next unless 'p' == curr[0]
       
-      puts "Trying #{curr}"
       stable_in = crypto_in = aave_in = Hash.new
       stable_out = crypto_out = aave_out = Hash.new
       
@@ -618,8 +620,6 @@ class BalanceCalculator
       raise '17'
     end
     
-    # After this, create chart from plan
-    
     puts "Passed: #{passed}"
     puts "Failed: #{failed}"
   end
@@ -658,7 +658,7 @@ private
     shortfall_amounts
   end
   
-  def address_shortfalls(shortfall_amounts, stable_in)
+  def address_shortfalls(shortfall_amounts, stable_in, slice)
     total_needed = 0
     shortfall_amounts.values.each do |v|
       total_needed += v[:short]
@@ -671,7 +671,12 @@ private
       #   there could be residual balances, so further calculations wouldn't be right
       reconciled = false
       shortfall_amounts.each do |coin, short|
-        @errors.push("Short $#{short[:short].round(2)} (#{short[:raw_short].round(2)}) of #{coin}")          
+        amount = short[:short].round(2)
+        if Setting::STABLE_COINS.include?(coin)
+          @errors.push("Short #{amount} #{coin} in #{slice} allocation")          
+        else
+          @errors.push("Short $#{amount} (#{short[:raw_short].round(2)}) of #{coin} in #{slice} allocation")          
+        end
       end
     else
       # We need to address all the shortfalls
@@ -708,43 +713,43 @@ private
     
     reconciled
   end
-  
+    
   def build_primary_series
     # Primary series is Gold, Crypto, Cash, Equities
     sections = []
 
-    sections.push({:desc => 'Gold', :name => 'Uniswap 1705 DAI for 1 PAXG', :y => @pie.pct_gold, :drilldown => nil}) if @pie.pct_gold > 0
+    sections.push({:desc => 'Gold', :name => @disposition[Setting::GOLD], :y => @pie.pct_gold, :drilldown => nil}) if @pie.pct_gold > 0
     sections.push({:desc => 'Crypto', :name => 'Crypto', :y => @pie.pct_crypto, :drilldown => 'Crypto'}) if @pie.pct_crypto > 0
     sections.push({:desc => 'Cash', :name => 'Cash', :y => @pie.pct_cash, :drilldown => 'Cash'}) if @pie.pct_cash > 0
-    sections.push({:desc => 'Equities', :name => 'Uniswap 850 DAI for 8500 aDAI', :y => @pie.pct_equities, :drilldown => nil}) if @pie.pct_equities > 0
+    sections.push({:desc => 'Equities', :name => @disposition[@pie.uma_collateral].join(';<br>').html_safe, :y => @pie.pct_equities, :drilldown => nil}) if @pie.pct_equities > 0
     
     {:name => 'Allocation',
      :colorByPoint => true,
      :data => sections}
   end
   
-  def build_drilldown_series
+  def build_drilldown_series(disposition)
     series = []
     
     if @pie.pct_crypto > 0
       data = []
-      data.push(['Use 0.125 pBTC from balance', @pie.crypto.currency_pct(0)])
-      data.push(['Use 4.147 ETH from balance', @pie.crypto.currency_pct(1)])
-      data.push(['Uniswap 1250.2 USDC for 78.4 LINK', @pie.crypto.currency_pct(1)])
-      #for idx in 0..2 do
-      #  data.push([@pie.crypto.currency_name(idx), @pie.crypto.currency_pct(idx)]) if @pie.crypto.currency_pct(idx) > 0
-      #end
+      
+      @setting.crypto_currency_range.each do |idx|
+        label = disposition[@pie.crypto.currency_name(idx)].join(';<br>').html_safe
+        data.push([label, @pie.crypto.currency_pct(idx)])
+      end
+        
       series.push({:name => 'Crypto',:id => 'Crypto', :data => data})
     end
     
     if @pie.pct_cash > 0
       data = []
-      data.push(['Use 1250 USDC from balance', @pie.crypto.currency_pct(0)])
-      data.push(['Use 850 DAI from balance', @pie.crypto.currency_pct(1)])
-      data.push(['Uniswap 1250.25 USDC for 1250 USDT', @pie.crypto.currency_pct(1)])
-      #for idx in 0..2 do
-      #  data.push([@pie.stable_coin.currency_name(idx), @pie.stable_coin.currency_pct(idx)]) if @pie.stable_coin.currency_pct(idx) > 0
-      #end
+
+      @setting.stablecoin_range.each do |idx|
+        label = disposition[@pie.stable_coin.currency_name(idx)].join(';<br>').html_safe
+        data.push([label, @pie.stable_coin.currency_pct(idx)])
+      end
+      
       series.push({:name => 'Cash',:id => 'Cash', :data => data})
     end
         

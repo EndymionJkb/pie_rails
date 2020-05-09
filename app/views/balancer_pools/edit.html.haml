@@ -29,11 +29,11 @@
                   .alert.alert-danger{:style => 'width:420px'}
                     %ul
                       - @errors.each do |error|
-                        - if error.has_key?(:needs_pbtc)
-                          %li= t('need_pbtc')
+                        - if error.has_key?(:coin)
+                          %li= t('need_ptoken', :token => error[:coin])
                           %ol{:style => 'padding-left:50px'}
-                            %li= t('trust_me', :amount => error[:needs_pbtc][:amount], :address => error[:needs_pbtc][:address])
-                            %li= link_to t('go_ptokens'), BalancerPool::PTOKENS_URL, :target => '_blank'
+                            %li{:style => 'font-size:11pt'}= t('trust_me', :amount => error[:amount].round(4), :address => error[:address])
+                            %li{:style => 'font-size:11pt'}= link_to t('go_ptokens'), BalancerPool::PTOKENS_URL, :target => '_blank'
                         - else
                           %li= error[:msg]
               - else
@@ -56,7 +56,7 @@
     var data = {'address':'0xBEf33200077A2A2AC3613aB92488b41FFc39AcE2',
                 'network':1,
                 'pool_id':#{@pool.id},
-                'coins': {'ETH':10, 'USDC':2000, 'DAI':3000, 'BAT':500, 'KICK':888888, 'cDAI':17432}};
+                'coins': {'ETH':1, 'USDC':2000, 'USDT': 300, 'DAI':3000, 'BAT':500, 'KICK':888888, 'pBTC':0.2, 'cDAI':17432}};
     
     jQuery.ajax({url:'#{update_balances_balancer_pool_path(@pool)}.js',
                  data: data,

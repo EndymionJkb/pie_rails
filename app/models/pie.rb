@@ -230,10 +230,11 @@ private
   
   def build_drilldown_series
     series = []
+    settings = Setting.first
     
     if self.pct_crypto > 0
       data = []
-      for idx in 0..2 do
+      for idx in settings.crypto_currency_range do
         data.push([self.crypto.currency_name(idx), self.crypto.currency_pct(idx)]) if self.crypto.currency_pct(idx) > 0
       end
       series.push({:name => 'Crypto',:id => 'Crypto', :data => data})
@@ -241,7 +242,7 @@ private
     
     if self.pct_cash > 0
       data = []
-      for idx in 0..2 do
+      for idx in settings.stablecoin_range do
         data.push([self.stable_coin.currency_name(idx), self.stable_coin.currency_pct(idx)]) if self.stable_coin.currency_pct(idx) > 0
       end
       series.push({:name => 'Cash',:id => 'Cash', :data => data})

@@ -50,7 +50,7 @@ class BalancerPoolsController < ApplicationController
       if key.starts_with?("spend_")
         coin = key[6..key.size]
         
-        @coins_to_use[coin] = params["balance_#{coin}"].gsub(",","").to_i
+        @coins_to_use[coin] = params["balance_#{coin}"].gsub(",","").to_f
       end
     end 
     
@@ -63,7 +63,7 @@ class BalancerPoolsController < ApplicationController
     result = @calculator.calculate
     
     if result[:result]
-      @alloc[:chart_data] = @calculator.build_chart
+      @alloc[:chart_data] = @calculator.build_chart(result[:disposition])
       @alloc[:errors] = nil  
     else
       @alloc[:errors] = result[:errors]
@@ -116,7 +116,7 @@ class BalancerPoolsController < ApplicationController
           @coins_to_use = @alloc[:coins_to_use]    
           
           # Remove coins that aren't whitelisted
-          bad = @coins.keys - BalancerPool.permitted_coins
+          bad = @coins.keys - Setting.first.all_currencies
           bad.each do |c|
             @coins.delete(c)  
           end    

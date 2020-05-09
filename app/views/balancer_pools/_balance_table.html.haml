@@ -19,7 +19,7 @@
   - coins.keys.each do |coin|
     %tr
       %td
-        = check_box_tag "spend_#{coin.downcase}", '1', coins_to_use.nil? ? true : coins_to_use.include?(coin.downcase)
+        = check_box_tag "spend_#{coin}", '1', coins_to_use.nil? ? true : coins_to_use.include?(coin)
       %td= coin
-      %td{:id => "entry_#{coin.downcase}"}= number_with_delimiter(coins[coin])
-      = hidden_field_tag "balance_#{coin.downcase}", number_with_delimiter(coins[coin]), :id => "balance_#{coin.downcase}"   
+      %td{:id => "entry_#{coin}"}= number_with_delimiter(coins[coin])
+      = hidden_field_tag "balance_#{coin}", number_with_delimiter(coins[coin]), :id => "balance_#{coin}"   
