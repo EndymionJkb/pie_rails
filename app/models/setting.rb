@@ -40,15 +40,15 @@ class Setting < ApplicationRecord
                             :greater_than_or_equal_to => 0, :less_than_or_equal_to => 100
   validates_length_of :focus, :maximum => 32
   
-  def crypto_currency_range
+  def self.crypto_currency_range
     [0,1,2]
   end
   
-  def stablecoin_range
+  def self.stablecoin_range
     [0,1,2]
   end
     
-  def all_currencies
+  def self.all_currencies
     all = STABLE_COINS.dup + all_cryptos + [GOLD]
     ALLOWED_UMA_COLLATERAL.each do |c|
       all.push(c) unless all.include?(c)
@@ -70,11 +70,11 @@ class Setting < ApplicationRecord
     all
   end
   
-  def all_cryptos
+  def self.all_cryptos
     cryptos = []
     CATEGORIES.each do |cat|
-      crypto_currency_range.each do |idx|
-        cryptos.push(crypto_currency_name(idx, cat))
+      Setting.crypto_currency_range.each do |idx|
+        cryptos.push(Setting.crypto_currency_name(idx, cat))
       end
     end 
     
@@ -106,12 +106,8 @@ class Setting < ApplicationRecord
     coins.include?(coin)
   end
   
-  def crypto_currency_name(idx, use_focus=nil)
-    if use_focus.nil?
-      use_focus = self.focus
-    end
-    
-    case use_focus
+  def self.crypto_currency_name(idx, focus)
+    case focus
     when LARGE_CAP
       case idx
       when 0

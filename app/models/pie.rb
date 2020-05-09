@@ -60,7 +60,7 @@ class Pie < ApplicationRecord
     
     # Add in the coins from the crypto category (if they're not pTokens or aTokens)
     if self.pct_crypto > 0
-      setting.crypto_currency_range.each do |idx|
+      Setting.crypto_currency_range.each do |idx|
         name = self.crypto.currency_name(idx)
         # Cryptos can be pTokens or aTokens - and the percentage can also be 0
         unless 0 == self.crypto.currency_pct(idx) or ['a','p'].include?(name[0])
@@ -81,7 +81,7 @@ class Pie < ApplicationRecord
     needs = Hash.new
     
     if self.pct_cash > 0
-      setting.stablecoin_range.each do |idx|
+      Setting.stablecoin_range.each do |idx|
         unless 0 == self.stable_coin.currency_pct(idx)
           needs[self.stable_coin.currency_name(idx)] = self.pct_cash.to_f / 100 * 
                                                        self.stable_coin.currency_pct(idx).to_f / 100
@@ -101,7 +101,7 @@ class Pie < ApplicationRecord
     needs = Hash.new
 
     if self.pct_crypto > 0
-      setting.crypto_currency_range.each do |idx|
+      Setting.crypto_currency_range.each do |idx|
         name = self.crypto.currency_name(idx)
         # Cryptos can be pTokens or aTokens - and the percentage can also be 0
         unless 0 == self.crypto.currency_pct(idx) or 'p' != name[0]
@@ -119,7 +119,7 @@ class Pie < ApplicationRecord
     needs = Hash.new
 
     if self.pct_crypto > 0
-      setting.crypto_currency_range.each do |idx|
+      Setting.crypto_currency_range.each do |idx|
         name = self.crypto.currency_name(idx)
         # Cryptos can be pTokens or aTokens - and the percentage can also be 0
         unless 0 == self.crypto.currency_pct(idx) or 'a' != name[0]
@@ -230,11 +230,10 @@ private
   
   def build_drilldown_series
     series = []
-    settings = Setting.first
     
     if self.pct_crypto > 0
       data = []
-      for idx in settings.crypto_currency_range do
+      for idx in Setting.crypto_currency_range do
         data.push([self.crypto.currency_name(idx), self.crypto.currency_pct(idx)]) if self.crypto.currency_pct(idx) > 0
       end
       series.push({:name => 'Crypto',:id => 'Crypto', :data => data})
@@ -242,7 +241,7 @@ private
     
     if self.pct_cash > 0
       data = []
-      for idx in settings.stablecoin_range do
+      for idx in Setting.stablecoin_range do
         data.push([self.stable_coin.currency_name(idx), self.stable_coin.currency_pct(idx)]) if self.stable_coin.currency_pct(idx) > 0
       end
       series.push({:name => 'Cash',:id => 'Cash', :data => data})

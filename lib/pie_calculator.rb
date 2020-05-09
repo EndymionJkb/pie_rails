@@ -10,6 +10,7 @@ class PieCalculator
   
   def initialize(pie)
     @pie = pie
+    @settings = pie.setting
     @performance = pie.performance.nil? ? Hash.new : YAML::load(pie.performance)
   end
   
@@ -53,7 +54,6 @@ class PieBacktestCalculator < PieCalculator
     has_equity = false
     # Don't rebalance cash
     fixed_cash = 0
-    settings = Setting.first
     
     if @pie.pct_gold > 0
       has_gold = true
@@ -69,9 +69,9 @@ class PieBacktestCalculator < PieCalculator
       has_crypto = true      
       crypto = @pie.crypto
       
-      settings.crypto_currency_range.each do |idx|
+      Setting.crypto_currency_range.each do |idx|
         if crypto.currency_pct(idx) > 0
-          currency = settings.crypto_currency_name(idx)
+          currency = Setting.crypto_currency_name(idx, @settings.focus)
           
           ref_percentages[currency] = @pie.pct_crypto.to_f / 100 * crypto.currency_pct(idx).to_f / 100
           start_date = PriceHistory.where(:coin => currency).where('date <= ?', start_date).maximum(:date)
@@ -92,9 +92,9 @@ class PieBacktestCalculator < PieCalculator
       cash = @pie.stable_coin
       fixed_cash = STARTING_VALUE * @pie.pct_cash / 100
 
-      settings.stablecoin_range.each do |idx|
+      Setting.stablecoin_range.each do |idx|
         if cash.currency_pct(idx) > 0
-          curr = settings.stablecoin_name(idx)
+          curr = @settings.stablecoin_name(idx)
           
           ref_percentages[curr] = cash.currency_pct(idx).to_f / 100 * @pie.pct_cash.to_f / 100
           last_prices[curr] = 1
@@ -189,9 +189,9 @@ class PieBacktestCalculator < PieCalculator
       if has_crypto
         crypto = @pie.crypto
         
-        settings.crypto_currency_range.each do |idx|
+        Setting.crypto_currency_range.each do |idx|
           if crypto.currency_pct(idx) > 0
-            currency = settings.crypto_currency_name(idx)
+            currency = Setting.crypto_currency_name(idx, @settings.focus)
             
             if today_prices[currency].nil?
               price = last_prices[currency]
@@ -250,9 +250,9 @@ class PieBacktestCalculator < PieCalculator
       if has_crypto
         crypto = @pie.crypto
         
-        settings.crypto_currency_range.each do |idx|
+        Setting.crypto_currency_range.each do |idx|
           if crypto.currency_pct(idx) > 0
-            currency = settings.crypto_currency_name(idx)
+            currency = Setting.crypto_currency_name(idx, @settings.focus)
             
             old_shares = last_shares[currency]
             last_shares[currency] = ref_percentages[currency] * value_today / last_prices[currency]
@@ -295,12 +295,11 @@ class PieReturnsCalculator < PieCalculator
     super(pie)
     
     @periods = periods
+    @settings = pie.setting
   end
 
   # Calculate  n-month return, and add to :returns => {3 => 2.43, 6 => -2.43}
   def calculate
-    settings = Setting.first
-    
     @periods.each do |period|
       investments = Hash.new
       # total_return is the sum of the individual returns
@@ -321,9 +320,9 @@ class PieReturnsCalculator < PieCalculator
       if @pie.pct_crypto > 0
         crypto = @pie.crypto
        
-        settings.crypto_currency_range.each do |idx|
+        Setting.crypto_currency_range.each do |idx|
           if crypto.currency_pct(idx) > 0
-            currency = settings.crypto_currency_name(idx)
+            currency = Setting.crypto_currency_name(idx, @settings.focus)
             
             investments[currency] = calculate_initial_amount(currency, start_date, @pie.pct_crypto.to_f / 100 * crypto.currency_pct(idx).to_f / 100)
             
@@ -336,9 +335,9 @@ class PieReturnsCalculator < PieCalculator
       if @pie.pct_cash > 0
         cash = @pie.stable_coin
         
-        settings.stablecoin_range.each do |idx|
+        Setting.stablecoin_range.each do |idx|
           if cash.currency_pct(idx) > 0
-            curr = settings.stablecoin_name(idx)
+            curr = @settings.stablecoin_name(idx)
             
             value = cash.currency_pct(idx).to_f / 100 * @pie.pct_cash.to_f / 100 * STARTING_VALUE
             # Assume 0 return

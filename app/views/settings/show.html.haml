@@ -16,8 +16,8 @@
           - Setting::CATEGORIES.each do |category|
             = radio_button_tag 'focus', category, category == @setting.focus
             == #{category} (
-            - @setting.crypto_currency_range.each do |idx|
-              = image_tag "#{@setting.crypto_currency_name(idx, category)}.png", :class => 'setting_img', :title => "#{@setting.crypto_currency_name(idx, category)}"
+            - Setting.crypto_currency_range.each do |idx|
+              = image_tag "#{Setting.crypto_currency_name(idx, category)}.png", :class => 'setting_img', :title => "#{Setting.crypto_currency_name(idx, category)}"
             )
             %br
         %p

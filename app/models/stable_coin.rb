@@ -21,7 +21,19 @@ class StableCoin < ApplicationRecord
                             :greater_than_or_equal_to => 0, :less_than_or_equal_to => 100
 
   def currency_name(idx)
-    Setting.first.stablecoin_name(idx)
+    if pie.setting.nil?
+      # It's a model portfolio (no user)
+      case idx
+      when 0
+        'USDT'
+      when 1
+        'DAI'
+      when 2
+        'USDC'
+      end
+    else
+      pie.setting.stablecoin_name(idx)
+    end
   end
 
   def currency_pct(idx)

@@ -21,7 +21,8 @@ class Crypto < ApplicationRecord
                             :greater_than_or_equal_to => 0, :less_than_or_equal_to => 100
                             
   def currency_name(idx)
-    Setting.first.crypto_currency_name(idx)
+    # Setting can be nil if it's a model portfolio (no user)
+    Setting.crypto_currency_name(idx, pie.setting.nil? ? Setting::LARGE_CAP : pie.setting.focus)
   end
 
   def currency_pct(idx)

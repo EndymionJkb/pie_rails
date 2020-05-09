@@ -24,7 +24,7 @@ class BalanceCalculator
     @disposition = Hash.new
     @errors = []
     @ptoken_errors = []
-    @setting = Setting.first
+    @setting = @pie.setting
   end
   
   # Algorithm - try to keep it simple; optimizing would be really hard!
@@ -277,7 +277,7 @@ class BalanceCalculator
     # Test every pToken (success)
     # pTokens are either there or not. If there, use the balance
     # If not there, go to ptokens protocol, get the address, and show the amount
-    Setting.first.all_currencies.each do |curr|
+    Setting.all_currencies.each do |curr|
       next unless 'p' == curr[0]
       
       stable_in = crypto_in = aave_in = Hash.new
@@ -300,7 +300,7 @@ class BalanceCalculator
     end
 
     # Test every pToken (none at all)
-    Setting.first.all_currencies.each do |curr|
+    Setting.all_currencies.each do |curr|
       next unless 'p' == curr[0]
       
       stable_in = crypto_in = aave_in = ptokens_in = Hash.new
@@ -323,7 +323,7 @@ class BalanceCalculator
     end
 
     # Test every pToken (not enough)
-    Setting.first.all_currencies.each do |curr|
+    Setting.all_currencies.each do |curr|
       next unless 'p' == curr[0]
       
       stable_in = crypto_in = aave_in = Hash.new
@@ -734,9 +734,12 @@ private
     if @pie.pct_crypto > 0
       data = []
       
-      @setting.crypto_currency_range.each do |idx|
-        label = disposition[@pie.crypto.currency_name(idx)].join(';<br>').html_safe
-        data.push([label, @pie.crypto.currency_pct(idx)])
+      Setting.crypto_currency_range.each do |idx|
+        currency = @pie.crypto.currency_name(idx)
+        if disposition.has_key?(currency)
+          label = disposition[currency].join(';<br>').html_safe
+          data.push([label, @pie.crypto.currency_pct(idx)])
+        end
       end
         
       series.push({:name => 'Crypto',:id => 'Crypto', :data => data})
@@ -745,9 +748,12 @@ private
     if @pie.pct_cash > 0
       data = []
 
-      @setting.stablecoin_range.each do |idx|
-        label = disposition[@pie.stable_coin.currency_name(idx)].join(';<br>').html_safe
-        data.push([label, @pie.stable_coin.currency_pct(idx)])
+      Setting.stablecoin_range.each do |idx|
+        currency = @pie.stable_coin.currency_name(idx)
+        if disposition.has_key?(currency)
+          label = disposition[currency].join(';<br>').html_safe
+          data.push([label, @pie.stable_coin.currency_pct(idx)])
+        end
       end
       
       series.push({:name => 'Cash',:id => 'Cash', :data => data})

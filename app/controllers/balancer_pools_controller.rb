@@ -116,7 +116,7 @@ class BalancerPoolsController < ApplicationController
           @coins_to_use = @alloc[:coins_to_use]    
           
           # Remove coins that aren't whitelisted
-          bad = @coins.keys - Setting.first.all_currencies
+          bad = @coins.keys - Setting.all_currencies
           bad.each do |c|
             @coins.delete(c)  
           end    

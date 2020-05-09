@@ -21,7 +21,8 @@ class SettingsController < ApplicationController
   end
     
   def update_coins
-    s = Setting.first
+    s = current_user.setting
+    
     s.update_attribute(:focus, params[:crypto])
     coins = []
     params[:stable].each do |coin|
