@@ -11,6 +11,7 @@
           %input#proportions{:type => 'text', :readonly => 'true'}
           #slider-range
         %p
+=begin
           %strong Crypto Focus
           %br
           - Setting::CATEGORIES.each do |category|
@@ -20,6 +21,7 @@
               = image_tag "#{@setting.crypto_currency_name(idx, category)}.png", :class => 'setting_img', :title => "#{@setting.crypto_currency_name(idx, category)}"
             )
             %br
+=end
         %p
           %strong Stablecoins
           %em (choose 3)
