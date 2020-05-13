@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_05_06_192707) do
+ActiveRecord::Schema.define(version: 2020_05_13_014615) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -23,6 +23,15 @@ ActiveRecord::Schema.define(version: 2020_05_06_192707) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["pie_id"], name: "index_balancer_pools_on_pie_id"
+  end
+
+  create_table "coin_infos", id: false, force: :cascade do |t|
+    t.string "coin", limit: 8, null: false
+    t.string "address", limit: 42, null: false
+    t.integer "decimals", default: 18, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["coin"], name: "index_coin_infos_on_coin", unique: true
   end
 
   create_table "cryptos", force: :cascade do |t|

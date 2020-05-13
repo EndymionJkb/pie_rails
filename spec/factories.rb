@@ -25,6 +25,7 @@ FactoryBot.define do
   sequence(:random_paragraph) { |n| Faker::Lorem.paragraph }
   sequence(:random_url) { |n| Faker::Internet.url }
   sequence(:random_eth_address) { |n| Faker::Blockchain::Ethereum.address }
+  sequence(:random_coin) { |n| Faker::Name.initials }
   
   factory :user do
     email { generate(:random_email) }
@@ -52,6 +53,11 @@ FactoryBot.define do
         create :stable_coin, :pie => pie, :pct_curr1 => 0, :pct_curr2 => 0, :pct_curr3 => 100
       end
     end
+    
+    after :create do |pie|
+      create :stable_coin, :pie => pie
+      create :crypto, :pie => pie
+    end
   end
   
   factory :setting do 
@@ -72,6 +78,14 @@ FactoryBot.define do
     pct_curr2 { Random.rand(100) }
     pct_curr3 { Random.rand(100) }
   end
+
+  factory :crypto do
+    pie
+    
+    pct_curr1 { Random.rand(100) }
+    pct_curr2 { Random.rand(100) }
+    pct_curr3 { Random.rand(100) }
+  end
   
   factory :balancer_pool do
     pie
@@ -85,5 +99,10 @@ FactoryBot.define do
     coin { ["BTC", "ETH", "LINK", "PAXG"].sample }
     date { generate(:random_past_date) }
     price { Random.rand() * 5000 + 1 }
+  end
+
+  factory :coin_info do
+    coin { generate(:random_coin) }
+    address { generate(:random_eth_address) }
   end
 end

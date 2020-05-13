@@ -64,10 +64,12 @@ class BalancerPoolsController < ApplicationController
     
     if result[:result]
       @alloc[:chart_data] = @calculator.build_chart(result[:disposition])
+      @alloc[:encoding] = result[:encoding]
       @alloc[:errors] = nil  
     else
       @alloc[:errors] = result[:errors]
       @alloc[:chart_data] = nil
+      @alloc[:encoding] = nil
     end
     @pool.update_attribute(:allocation, YAML::dump(@alloc))
                  

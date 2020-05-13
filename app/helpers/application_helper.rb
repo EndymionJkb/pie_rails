@@ -1,7 +1,9 @@
 module ApplicationHelper
+  DATE_FORMAT = '%Y%m'
+
   # Returns the full title on a per-page basis.
   def full_title(page_title)
-    page_title.blank? ? "ReviewRight" : "ReviewRight | #{page_title}"
+    page_title.blank? ? "My Defi Pie" : "My Defi Pie | #{page_title}"
   end
 
   def get_network_name(network_id)
