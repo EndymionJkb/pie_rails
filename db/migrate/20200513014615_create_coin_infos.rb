@@ -4,6 +4,8 @@ class CreateCoinInfos < ActiveRecord::Migration[5.2]
       t.string :coin, :null => false, :limit => 8
       t.string :address, :null => false, :limit => 42
       t.integer :decimals, :null => false, :default => 18
+      t.boolean :used, :null => false, :default => false
+      t.text :abi
       
       t.timestamps
     end

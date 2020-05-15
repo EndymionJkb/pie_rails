@@ -47,7 +47,7 @@
                 %em= t('symbol_generated')
                 %br
                 = f.label :uma_expiry_date, t('expiry_date')
-                = f.select :uma_expiry_date, options_for_select(Pie::UMA_EXPIRY_DATES, f.object.uma_expiry_date || Pie::DEFAULT_EXPIRY_DATE)
+                = f.select :uma_expiry_date, options_for_select(@expiry_dates.collect { |d| [d.date_str, d.unix] }, @default_date)
               %br
               = f.submit t('update_pie'), :class => 'btn btn-primary', :id => 'submit_pie'
           .col-sm-9

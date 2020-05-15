@@ -28,10 +28,6 @@ class Pie < ApplicationRecord
   
   MAX_EQUITIES = 8
   
-  UMA_EXPIRY_DATES = ['6/1/2020', '7/1/2020', '8/1/2020', '9/1/2020', '10/1/2020', '11/1/2020', '12/1/2020',
-                      '1/1/2021', '2/1/2021', '3/1/2021', '4/1/2021', '5/1/2021', '6/1/2021', '7/1/2021']
-  DEFAULT_EXPIRY_DATE = '6/1/2020'
-  
   has_one :crypto
   has_one :stable_coin
   has_one :balancer_pool
@@ -211,6 +207,15 @@ class Pie < ApplicationRecord
 
   def uma_token_symbol
     "MDPSNX#{self.id}"
+  end
+  
+  def uma_next_month
+    if self.uma_expiry_date.blank?
+      nil
+    else
+      next_month = UmaExpiryDate.find_by_ordinal(UmaExpiryDate.find_by_unix(self.uma_expiry_date).ordinal + 1)
+      next_month.nil? ? nil : next_month.unix
+    end
   end
   
 private

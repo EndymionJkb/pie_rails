@@ -112,8 +112,9 @@ class BalanceCalculator
       # The synthetic data is independent of the processing here, so we can fill it right in from the pie
       @encoding[:synthetic] = {:token_symbol => @pie.uma_token_symbol, 
                                :token_name => @pie.uma_token_name,
-                               :collateral => @pie.uma_collateral,
-                               :expiry_date => @pie.uma_expiry_date}
+                               :collateral => CoinInfo.find_by_coin(@pie.uma_collateral).address,
+                               :expiry_date => @pie.uma_expiry_date,
+                               :next_month => @pie.uma_next_month}
         
       result = {:result => true,
                 :disposition => @disposition,
@@ -150,7 +151,7 @@ class BalanceCalculator
         @disposition[coin_out] = ["Take #{amount_needed.round(2)} #{coin_out} from balance"]
         coin_data = CoinInfo.find_by_coin('pBTC')
         
-        @encoding[:pool].push({:coin => coin_data.address, :amount => coin_data.to_wei(amount_needed) })
+        @encoding[:pool].push({:coin => coin_data.address, :amount => coin_data.to_wei(amount_needed), :denorm => Utilities.to_wei(pct*50) })
       else
         @ptoken_errors.push({:coin => coin_out, :amount => amount_needed, :address => '14a4aHGFggMCne6AuVszrtiDfSZbcCr51L'})
       end
@@ -169,7 +170,8 @@ class BalanceCalculator
         stable_in['USDT'] -= amount_needed
         @disposition['USDT'] = ["Take #{amount_needed} from USDT balance"]
         coin_data = CoinInfo.find_by_coin('USDT')
-        @encoding[:pool].push({:coin => coin_data.address, :amount => coin_data.to_wei(amount_needed) })
+        @encoding[:pool].push({:coin => coin_data.address, :amount => coin_data.to_wei(amount_needed), 
+                               :denorm => Utilities.to_wei(stable_out['USDT'] * 50.0)})
         if 0 == stable_in['USDT']
           stable_in.delete('USDT')
         end
@@ -205,22 +207,22 @@ class BalanceCalculator
         
         amount_needed = pct * @investment / price
         try_eth = false
+        coin_data = CoinInfo.find_by_coin(coin)
+        @encoding[:pool].push({:coin => coin_data.address, :amount => coin_data.to_wei(amount_needed),
+                               :denorm => Utilities.to_wei(pct*50.0) })
         
         # Do we have enough atokens?
         if aave_in[coin].to_f >= amount_needed
           # Yes! take it
           @disposition[coin] = [] unless @disposition.has_key?(coin)
           @disposition[coin].push("Take #{amount_needed.round(2)} from #{coin} balance")
-          coin_data = CoinInfo.find_by_coin(coin)
-          @encoding[:pool].push({:coin => coin_data.address, :amount => coin_data.to_wei(amount_needed) })
         else
+          
           # If we have some...
           if aave_in[coin].to_f > 0
             amount_needed -= aave_in[coin]
             @disposition[coin] = [] unless @disposition.has_key?(coin)
             @disposition[coin].push("Take #{aave_in[coin]} from #{coin} balance")
-            coin_data = CoinInfo.find_by_coin(coin)
-            @encoding[:pool].push({:coin => coin_data.address, :amount => coin_data.to_wei(aave_in[coin]) })
           end
           
           # Now see if we have enough base coin (base could be a stable coin or a crypto)
@@ -238,7 +240,6 @@ class BalanceCalculator
                                            :src_coin => src_coin.address,
                                            :dest_coin => dest_coin.address,
                                            :amount => src_coin.to_wei(amount_needed) })
-              @encoding[:pool].push({:coin => dest_coin.address, :amount => dest_coin.to_wei(amount_needed)})
             else
               try_eth = true
             end
@@ -256,7 +257,6 @@ class BalanceCalculator
                                            :src_coin => src_coin.address,
                                            :dest_coin => dest_coin.address,
                                            :amount => src_coin.to_wei(amount_needed) })
-              @encoding[:pool].push({:coin => dest_coin.address, :amount => dest_coin.to_wei(amount_needed)})
             else
               try_eth = true
             end
@@ -285,7 +285,6 @@ class BalanceCalculator
                                            :src_coin => src_coin.address,
                                            :dest_coin => dest_coin.address,
                                            :amount => src_coin.to_wei(amount_needed) })
-              @encoding[:pool].push({:coin => dest_coin.address, :amount => dest_coin.to_wei(amount_needed)})
               crypto_in['ETH'] -= amount_needed
             else
               @errors.push("Short #{amount_needed.round(2)} ETH to swap for #{original_amount.round(2)} of #{coin} in AAVE allocation (or collateral)")
@@ -694,7 +693,8 @@ private
         @disposition[coin] = [] unless @disposition.has_key?(coin)
         @disposition[coin].push("Take #{amount_needed.round(2)} from #{coin} balance")
         coin_data = CoinInfo.find_by_coin(coin)
-        @encoding[:pool].push({:coin => coin_data.address, :amount => coin_data.to_wei(amount_needed)})
+        @encoding[:pool].push({:coin => coin_data.address, :amount => coin_data.to_wei(amount_needed),
+                               :denorm => Utilities.to_wei(pct*50.0)})
         
         if 0 == coins_in[coin]
           coins_in.delete(coin)
@@ -705,7 +705,8 @@ private
         # raw_short is the amount of coins
         shortfall_amounts[coin] = {:used => amount_needed - shortfall, 
                                    :short => shortfall * price,
-                                   :raw_short => shortfall}
+                                   :raw_short => shortfall,
+                                   :pct => pct}
       end
     end    
     
@@ -737,6 +738,11 @@ private
       # Go through the shortfalls from smallest to largest
       # Go through the stable_in coins from largest to smallest
       shortfall_amounts.sort_by { |k, v| v[:short] }.each do |coin_out, short|
+        coin_data = CoinInfo.find_by_coin(coin_out)
+        @encoding[:pool].push({:coin => coin_data.address,
+                               :amount => coin_data.to_wei(short[:raw_short]),
+                               :denorm => Utilities.to_wei(short[:pct]*50.0) })
+
         stable_in.sort_by { |k, v| -v }.each do |coin_in, balance|
           if balance >= short[:short]
             stable_in[coin_in] -= short[:short]
@@ -744,9 +750,6 @@ private
             
             if short[:used] > 0
               @disposition[coin_out].push("Take #{short[:used].round(2)} from #{coin_out} balance")
-              coin_data = CoinInfo.find_by_coin(coin_out)
-              @encoding[:pool].push({:coin => coin_data.address,
-                                     :amount => coin_data.to_wei(short[:used]) })
             end
 
             @disposition[coin_out].push("Uniswap #{short[:short].round(2)} #{coin_in} for #{coin_out}")
@@ -757,8 +760,6 @@ private
                                          :src_coin => src_coin.address,
                                          :dest_coin => dest_coin.address,
                                          :amount => src_coin.to_wei(short[:raw_short]) })
-            # dest_coin will be a stable coin, so we use the dollar value
-            @encoding[:pool].push({:coin => dest_coin.address, :amount => dest_coin.to_wei(short[:short])})
             # This shortfall has been met, so stop
             break
           elsif balance.round > 0
@@ -774,7 +775,6 @@ private
                                          :src_coin => src_coin.address,
                                          :dest_coin => dest_coin.address,
                                          :amount => src_coin.to_wei(amount_src_coin_left) })
-            @encoding[:pool].push({:coin => dest_coin.address, :amount => dest_coin.to_wei(balance)})
           end
         end
       end

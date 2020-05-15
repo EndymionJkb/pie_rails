@@ -96,17 +96,6 @@ class BalancerPoolsController < ApplicationController
           @alloc.delete(:ens_avatar)
         end
         
-        # ENS Lookup address name and avatar
-        unless @alloc.has_key?(:ens_name)
-          @ens_name = "endymionjkb.eth"
-          @alloc[:ens_name] = @ens_name
-        end
-    
-        unless @alloc.has_key?(:ens_avatar)
-          @ens_avatar = "https://www.gravatar.com/avatar/3643654c087726a2440e9284db1dd5d0"
-          @alloc[:ens_avatar] = @ens_avatar
-        end
-        
         # Save these results
         @pool.update_attribute(:allocation, YAML::dump(@alloc))
         
@@ -132,8 +121,6 @@ class BalancerPoolsController < ApplicationController
     respond_to do |format|       
       format.js do
         if @error.blank?
-          puts @ens_name
-          puts @ens_avatar
           render :partial => 'balance_table', :locals => {:coins => @coins, :coins_to_use => @coins_to_use,
                                                           :address => @address, :ens_name => @alloc[:ens_name], 
                                                           :avatar => @alloc[:ens_avatar], :investment => @alloc[:investment]}

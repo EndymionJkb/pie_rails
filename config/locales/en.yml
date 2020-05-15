@@ -43,10 +43,11 @@ en:
   backtest_title: 'Backtest'
   backtest: "Backtest '%{name}'"
   balancer_pool: 'Balancer Pool'
-  create_balancer: 'Create Balancer Pool'
+  design_balancer: 'Design Balancer Pool'
+  design_instructions: 'Here the system will review your account balances and design an optimal process for funding your pie'
   monitor_balancer: 'Monitor Balancer'
   view_balancer: 'View Balancer'
-  coin_balances: 'Portis Balances'
+  coin_balances: 'Coin Balances'
   token: 'Token'
   balance: 'Balance'
   need_ptoken: 'You need %{token} tokens!'
@@ -71,3 +72,5 @@ en:
   expiring_on: 'Expiring on'
   contract_address: 'UMA Contract Address'
   balancer_address: 'Balancer Address'
+  metamask_blurb: 'A crypto wallet &amp; gateway to blockchain apps'
+  portis_blurb: "The Non-Custodial Blockchain Wallet that Makes Apps Simple for Everyone"

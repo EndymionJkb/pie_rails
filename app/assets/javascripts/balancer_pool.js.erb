@@ -1,0 +1,37 @@
+function getNetworkName(networkID) {
+	var result = null;
+	
+	switch (networkID) {
+		case '1': result = 'Mainnet'; break;
+		case '2': result = 'Morden'; break;
+		case '3': result = 'Ropsten'; break;
+		case '4': result = 'Rinkeby'; break;
+		case '5': result = 'Goerli'; break;
+		case '42': result = 'Kovan'; break;
+		default: result = 'Unknown'; break;
+	}
+	
+	return result;
+}
+
+async function getBalances(ethereum_address) {
+    var balanceData = {};
+    
+    const rawBalance = await web3.eth.getBalance(ethereum_address);
+    const ethBalance = web3.utils.fromWei(rawBalance, 'ether');
+	balanceData['ETH'] = ethBalance;
+	
+	<% CoinInfo.used.each do |coin| %>
+		const address = '<%= coin.address %>';
+		const abi = '<%= coin.abi %>';
+		var contract = new ethers.Contract(address,
+			                               JSON.parse(abi),
+			                               provider.getSigner(0));
+		var balance = await contract.balanceOf(ethereum_address);
+		alert("<%= coin.coin%>: " + balance);
+		balanceData['<%= coin.coin %>'] = balance.toString();
+	<% end %>
+	
+	return balanceData;
+}
+  

@@ -5,6 +5,8 @@
 #  coin       :string(8)        not null, primary key
 #  address    :string(42)       not null
 #  decimals   :integer          default(18), not null
+#  used       :boolean          default(FALSE), not null
+#  abi        :text
 #  created_at :datetime         not null
 #  updated_at :datetime         not null
 #
@@ -19,6 +21,8 @@ RSpec.describe CoinInfo, type: :model do
     expect(contract).to respond_to(:coin)
     expect(contract).to respond_to(:address)
     expect(contract).to respond_to(:decimals)
+    expect(contract).to respond_to(:used)
+    expect(contract).to respond_to(:abi)
   end
   
   it { should be_valid }

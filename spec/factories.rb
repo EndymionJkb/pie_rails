@@ -105,4 +105,10 @@ FactoryBot.define do
     coin { generate(:random_coin) }
     address { generate(:random_eth_address) }
   end
+  
+  factory :uma_expiry_date do
+    date_str { ['6/1/2020','7/1/2020','8/1/2020'].sample }
+    unix { generate(:random_alphanumeric) }
+    ordinal { Random.rand(16) + 1 }
+  end  
 end

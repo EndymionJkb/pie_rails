@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_05_13_014615) do
+ActiveRecord::Schema.define(version: 2020_05_14_021331) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -29,6 +29,8 @@ ActiveRecord::Schema.define(version: 2020_05_13_014615) do
     t.string "coin", limit: 8, null: false
     t.string "address", limit: 42, null: false
     t.integer "decimals", default: 18, null: false
+    t.boolean "used", default: false, null: false
+    t.text "abi"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["coin"], name: "index_coin_infos_on_coin", unique: true
@@ -143,6 +145,14 @@ ActiveRecord::Schema.define(version: 2020_05_13_014615) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["cca_id", "run_date"], name: "index_stocks_on_cca_id_and_run_date", unique: true
+  end
+
+  create_table "uma_expiry_dates", force: :cascade do |t|
+    t.string "date_str", limit: 16, null: false
+    t.string "unix", limit: 16, null: false
+    t.integer "ordinal", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "users", force: :cascade do |t|

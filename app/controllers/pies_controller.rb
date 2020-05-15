@@ -13,7 +13,9 @@ class PiesController < ApplicationController
   end
   
   def edit
-    @pie = current_user.pie    
+    @pie = current_user.pie 
+    @expiry_dates = UmaExpiryDate.all
+    @default_date = @pie.uma_expiry_date or UmaExpiryDate.first.date_str   
   end
   
   def update
