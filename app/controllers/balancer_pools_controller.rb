@@ -82,6 +82,7 @@ class BalancerPoolsController < ApplicationController
     @error = ''
     
     @address = params[:address]
+    @coins_out = Hash.new
     
     if @address.blank?
       @error = 'No wallet address found!'
@@ -99,18 +100,29 @@ class BalancerPoolsController < ApplicationController
         # Save these results
         @pool.update_attribute(:allocation, YAML::dump(@alloc))
         
-        @coins = params[:coins]
-        if @coins.nil? or @coins.empty?
+        @coins_in = params[:coins]
+        if @coins_in.nil? or @coins_in.empty?
           @error = "No coins found!"
         else
           # If we already have a list from earlier, retain that information
           @coins_to_use = @alloc[:coins_to_use]    
           
           # Remove coins that aren't whitelisted
-          bad = @coins.keys - Setting.all_currencies
+          bad = @coins_in.keys - Setting.all_currencies
           bad.each do |c|
-            @coins.delete(c)  
-          end    
+            @coins_in.delete(c)  
+          end   
+          
+          @coins_in.each do |coin, balance|
+            # ETH is already converted
+            if 'ETH' == coin
+              @coins_out[coin] = balance
+              next
+            end
+            
+            info = CoinInfo.find_by_coin(coin)
+            @coins_out[coin] = info.from_wei(balance)
+          end 
         end
       else
         network_name = get_network_name(network)
@@ -121,7 +133,7 @@ class BalancerPoolsController < ApplicationController
     respond_to do |format|       
       format.js do
         if @error.blank?
-          render :partial => 'balance_table', :locals => {:coins => @coins, :coins_to_use => @coins_to_use,
+          render :partial => 'balance_table', :locals => {:coins => @coins_out, :coins_to_use => @coins_to_use,
                                                           :address => @address, :ens_name => @alloc[:ens_name], 
                                                           :avatar => @alloc[:ens_avatar], :investment => @alloc[:investment]}
         else

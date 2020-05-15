@@ -27,4 +27,8 @@ class CoinInfo < ApplicationRecord
   def to_wei(amount)
     Utilities.to_wei(amount, self.decimals)
   end
+  
+  def from_wei(amount)
+    Utilities.from_wei(amount, self.decimals)    
+  end
 end

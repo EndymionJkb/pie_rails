@@ -43,6 +43,7 @@ en:
   backtest_title: 'Backtest'
   backtest: "Backtest '%{name}'"
   balancer_pool: 'Balancer Pool'
+  create_balancer: 'Create Balancer'
   design_balancer: 'Design Balancer Pool'
   design_instructions: 'Here the system will review your account balances and design an optimal process for funding your pie'
   monitor_balancer: 'Monitor Balancer'

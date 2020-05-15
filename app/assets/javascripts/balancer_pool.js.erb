@@ -16,22 +16,24 @@ function getNetworkName(networkID) {
 
 async function getBalances(ethereum_address) {
     var balanceData = {};
+    var address = null;
+    var abi = null;
+    var contract = null;
+    var balance = null;
     
     const rawBalance = await web3.eth.getBalance(ethereum_address);
     const ethBalance = web3.utils.fromWei(rawBalance, 'ether');
 	balanceData['ETH'] = ethBalance;
-	
+
 	<% CoinInfo.used.each do |coin| %>
-		const address = '<%= coin.address %>';
-		const abi = '<%= coin.abi %>';
-		var contract = new ethers.Contract(address,
-			                               JSON.parse(abi),
-			                               provider.getSigner(0));
-		var balance = await contract.balanceOf(ethereum_address);
-		alert("<%= coin.coin%>: " + balance);
-		balanceData['<%= coin.coin %>'] = balance.toString();
+	    address = '<%= coin.address %>';
+		abi = '<%= coin.abi %>';
+		contract = new ethers.Contract(address,
+			                           JSON.parse(abi),
+			                           provider.getSigner(0));
+	    balance = await contract.balanceOf(ethereum_address);
+		balanceData['<%= coin.coin %>'] = balance.toString();			
 	<% end %>
-	
+
 	return balanceData;
 }
-  

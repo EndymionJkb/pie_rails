@@ -142,7 +142,7 @@
   }
     
   async function loadBalances() {
-     balanceData = await getBalances();
+     balanceData = await getBalances(ethereum_address);
      
      if (0 == balanceData.size) {
          $('#no_balances').text("No balances!");

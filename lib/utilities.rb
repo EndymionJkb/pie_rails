@@ -10,11 +10,11 @@ module Utilities
   end
   
   def self.to_wei(amount, decimals=18)
-    (amount * 10**decimals).to_i.to_s
+    (amount.to_f * 10**decimals).to_i.to_s
   end
 
   def self.from_wei(amount, decimals=18)
-    (amount / 10**decimals).to_f.to_s
+    (amount.to_f / 10**decimals).to_f.to_s
   end
   
   def self.utf8ToHex(name)
