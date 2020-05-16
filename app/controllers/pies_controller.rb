@@ -1,7 +1,7 @@
 require 'pie_calculator'
 
 class PiesController < ApplicationController
-  before_action :authenticate_user!
+  before_action :authenticate_user!, :except => [:synthetics_index, :balancer_index]
   before_action :no_pool, :only => [:edit_allocation]
   
   def show
@@ -184,6 +184,14 @@ class PiesController < ApplicationController
     @pie.stocks << @src.stocks unless 0 == @src.stocks.count
                      
     redirect_to edit_py_path(@pie), :notice => "Copied #{@src.name}"
+  end
+  
+  def synthetics_index
+    
+  end
+  
+  def balancer_index
+    
   end
     
 private

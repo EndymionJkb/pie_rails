@@ -43,6 +43,15 @@ class BalancerPoolsController < ApplicationController
                                                                      :coins_to_use => @alloc[:coins_to_use], 
                                                                      :investment => @alloc[:investment]}
     @balance_table = html
+    @need_btc_address = false
+    unless @errors.nil?
+      @errors.each do |error|
+        if error.has_key?(:coin)
+          @need_btc_address = true
+          break
+        end
+      end
+    end
   end
   
   def update

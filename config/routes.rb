@@ -1,7 +1,7 @@
 Rails.application.routes.draw do
   devise_for :users
   # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
-  root :to => 'pies#show'
+  root :to => 'static_pages#works'
   
   resources :settings, :only => [:show, :update] do
     put 'update_coins', :on => :collection
@@ -13,6 +13,11 @@ Rails.application.routes.draw do
       get 'edit_allocation'
       put 'update_allocation'
       put 'copy'
+    end
+    
+    collection do
+      get 'synthetics_index'
+      get 'balancer_index'
     end
   end
 
@@ -27,4 +32,5 @@ Rails.application.routes.draw do
   
   get '/test', :to => 'static_pages#test'
   get '/about', :to => 'static_pages#about'
+  get '/works', :to => 'static_pages#works'
 end

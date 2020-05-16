@@ -19,6 +19,7 @@
           = hidden_field_tag :show_address, !@address.nil? && @ens_name.nil?
           = hidden_field_tag :show_ens_name, !@ens_name.nil?
           = hidden_field_tag :show_ens_avatar, !@ens_avatar.nil?
+          = hidden_field_tag :need_btc_address, @need_btc_address
           .row
             .col-md-5
               #address_block{:style => 'display:none'}
@@ -58,7 +59,9 @@
                         - if error.has_key?(:coin)
                           %li= t('need_ptoken', :token => error[:coin])
                           %ol{:style => 'padding-left:50px'}
-                            %li{:style => 'font-size:11pt'}= t('trust_me', :amount => error[:amount].round(4), :address => error[:address])
+                            %li{:style => 'font-size:11pt'}
+                              = t('trust_me', :amount => error[:amount].round(4))
+                              #btc_address
                             %li{:style => 'font-size:11pt'}= link_to t('go_ptokens'), BalancerPool::PTOKENS_URL, :target => '_blank'
                         - else
                           %li= error[:msg]
@@ -131,7 +134,22 @@
       $('#coin_table').html("#{j(@balance_table)}");
       $('#coin_balances').show();
     }
+    
+    //var need_btc_address = $('#need_btc_address').val();
+    //if ('true' == need_btc_address) {
+      //fillInBTCAddress();
+    //}
   });
+  
+  // async function fillInBTCAddress() {
+  //    var pBTC = new pBTC({
+  //        ethProvider: window.web3.currentProvider,
+  //        btcNetwork: 'bitcoin'
+  //      });
+  //    const depositAddress = await pbtc.getDepositAddress();
+      
+  //    $('#btc_address').text(depositAddress);
+  //}
   
   async function loadWallet(wallet) {
     if ('Metamask' == wallet) {

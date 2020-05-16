@@ -52,7 +52,7 @@ en:
   token: 'Token'
   balance: 'Balance'
   need_ptoken: 'You need %{token} tokens!'
-  trust_me: "Trust me! Send %{amount} BTC to %{address}"
+  trust_me: "Trust me! Send %{amount} BTC to"
   go_ptokens: 'Go to the pTokens site'
   create_pool: 'Create Pool!'
   investment: 'Initial investment'
@@ -75,3 +75,6 @@ en:
   balancer_address: 'Balancer Address'
   metamask_blurb: 'A crypto wallet &amp; gateway to blockchain apps'
   portis_blurb: "The Non-Custodial Blockchain Wallet that Makes Apps Simple for Everyone"
+  how_it_works: 'How it Works'
+  synthetics: 'Synthetics'
+  balancer_pools: 'Balancer Pools'
