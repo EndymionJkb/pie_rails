@@ -14,6 +14,11 @@
           %p= t('design_instructions')
         .in_iner_pag.afclr
           = hidden_field_tag :has_chart, !@chart_data.nil?
+          = hidden_field_tag :has_table, !@balance_table.nil?
+          = hidden_field_tag :has_connection, !@address.nil?
+          = hidden_field_tag :show_address, !@address.nil? && @ens_name.nil?
+          = hidden_field_tag :show_ens_name, !@ens_name.nil?
+          = hidden_field_tag :show_ens_avatar, !@ens_avatar.nil?
           .row
             .col-md-5
               #address_block{:style => 'display:none'}
@@ -91,12 +96,41 @@
           ethereum_address = accounts[0];
         });*/
     }
+    
+    var has_connection = $('#has_connection').val();
+    if ('true' == has_connection) {
+        $('#connection_status').text('Connected');
+    }
+    
+    var show_address = $('#show_address').val();
+    if ('true' == show_address) {
+        $('#eth_address').val('#{@address}');
+        $('#address_block').show();
+    }
+    else {
+        var show_name = $('#show_ens_name').val();
+        if ('true' == show_name) {
+            var show_avatar = $('#show_ens_avatar').val();
+            
+            $('#address_block').hide();
+            $('#ens_name').text('#{@ens_name}');
+            if ('true' == show_avatar) {
+                $('#avatar').html("<image src='#{@ens_avatar}'/>");
+            }
+            $('#ens_block').show();
+        }
+    }
                       
     var has_chart = $('#has_chart').val();
-     
     if ('true' == has_chart) {
       Highcharts.chart('my_plan', #{@chart_data});
     }     
+
+    var has_table = $('#has_table').val();     
+    if ('true' == has_table) {
+      $('#coin_table').html("#{j(@balance_table)}");
+      $('#coin_balances').show();
+    }
   });
   
   async function loadWallet(wallet) {

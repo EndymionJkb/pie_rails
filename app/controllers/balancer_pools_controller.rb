@@ -34,11 +34,17 @@ class BalancerPoolsController < ApplicationController
       @pool.update_attribute(:allocation, YAML::dump(@alloc))              
     end
     
-    @investment = @alloc[:investment]    
     @chart_data = @alloc[:chart_data].nil? ? nil : @alloc[:chart_data].to_json.html_safe
     @errors = @alloc[:errors]
+    @ens_name = @alloc[:ens_name]
+    @ens_avatar = @alloc[:ens_avatar]
+    @address = @alloc[:address]
+    html = render_to_string :partial => 'balance_table', :locals => {:coins => @alloc[:coins_to_display], 
+                                                                     :coins_to_use => @alloc[:coins_to_use], 
+                                                                     :investment => @alloc[:investment]}
+    @balance_table = html
   end
-
+  
   def update
     @pool = BalancerPool.find(params[:id])
     sanity_check
@@ -114,6 +120,7 @@ class BalancerPoolsController < ApplicationController
           end   
           
           @coins_in.each do |coin, balance|
+            next if 0 == balance.to_f
             # ETH is already converted
             if 'ETH' == coin
               @coins_out[coin] = balance
@@ -122,7 +129,10 @@ class BalancerPoolsController < ApplicationController
             
             info = CoinInfo.find_by_coin(coin)
             @coins_out[coin] = info.from_wei(balance)
-          end 
+          end
+          
+          @alloc[:coins_to_display] = @coins_out 
+          @pool.update_attribute(:allocation, YAML::dump(@alloc))
         end
       else
         network_name = get_network_name(network)
@@ -133,9 +143,8 @@ class BalancerPoolsController < ApplicationController
     respond_to do |format|       
       format.js do
         if @error.blank?
-          render :partial => 'balance_table', :locals => {:coins => @coins_out, :coins_to_use => @coins_to_use,
-                                                          :address => @address, :ens_name => @alloc[:ens_name], 
-                                                          :avatar => @alloc[:ens_avatar], :investment => @alloc[:investment]}
+          render :partial => 'balance_table', :locals => {:coins => @coins_out, :coins_to_use => @coins_to_use, 
+                                                          :investment => @alloc[:investment]}
         else
           render :partial => 'error', :locals => {:error => @error}
         end
