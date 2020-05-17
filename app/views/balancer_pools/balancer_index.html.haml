@@ -1,0 +1,29 @@
+- provide(:title, t('balancer_pools'))
+= render 'layouts/pie_header'
+.c_customer.afclr
+  .wrapper
+    .re_main.afclr
+      .ab_head.afclr
+        %h1= t('balancer_pools')
+      .in_iner_pag.afclr
+        - if @balancers.empty?
+          %h3 No active Balancer Pools
+        - else
+          %table.table.striped-table
+            %tr
+              %th Address
+              %th % Gold
+              %th % Equities
+              %th % Crypto
+              %th % Cash
+            - @balancers.each do |bal|
+              %td
+                = link_to bal[:address], bal[:url], :target => '_blank'
+              %td= bal[:gold]
+              %td
+                = bal[:equities]
+                - unless bal[:synthetic].nil?
+                  == (#{bal[:synthetic]})
+              %td= bal[:crypto]
+              %td= bal[:cash]
+  = render 'layouts/pie_footer'

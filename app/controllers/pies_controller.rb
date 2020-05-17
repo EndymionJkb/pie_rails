@@ -1,7 +1,7 @@
 require 'pie_calculator'
 
 class PiesController < ApplicationController
-  before_action :authenticate_user!, :except => [:synthetics_index, :balancer_index]
+  before_action :authenticate_user!
   before_action :no_pool, :only => [:edit_allocation]
   
   def show
@@ -152,7 +152,7 @@ class PiesController < ApplicationController
   def index
     @models = Pie.where(:user_id => nil)
   end
-  
+
   def copy
     @pie = Pie.find(params[:id])   
     @src = Pie.find(params[:src])

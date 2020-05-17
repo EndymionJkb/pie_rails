@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_05_17_004209) do
+ActiveRecord::Schema.define(version: 2020_05_17_163055) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -106,6 +106,14 @@ ActiveRecord::Schema.define(version: 2020_05_17_004209) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["coin", "date"], name: "index_price_histories_on_coin_and_date", unique: true
+  end
+
+  create_table "price_identifiers", force: :cascade do |t|
+    t.bigint "pie_id"
+    t.string "whitelisted", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["pie_id"], name: "index_price_identifiers_on_pie_id"
   end
 
   create_table "settings", force: :cascade do |t|

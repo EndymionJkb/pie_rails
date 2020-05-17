@@ -1,0 +1,26 @@
+- provide(:title, 'Log in')
+= render 'layouts/pie_header'
+.c_customer.afclr
+  .wrapper
+    .re_main.afclr
+      .ab_head.afclr
+        %h2= t('sign_in')
+      .in_iner_pag.afclr
+        = form_for(resource, as: resource_name, url: session_path(resource_name)) do |f|
+          .field
+            = f.label :email, t('email').capitalize
+            %br
+            = f.email_field :email, autofocus: true, autocomplete: "email"
+          %br
+          .field
+            = f.label :password, t('password').capitalize
+            %br
+            = f.password_field :password, autocomplete: "current-password"
+          - if devise_mapping.rememberable?
+            .field
+              = f.check_box :remember_me
+              = f.label :remember_me, t('remember_me')
+          %br
+          .devise_actions
+            = f.submit t('sign_in')
+        = render "devise/shared/links"

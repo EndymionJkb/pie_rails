@@ -2,7 +2,7 @@
   .wrapper.afclr
     .c_whead.afclr
       .c_logo
-        = link_to image_tag('cca_logo.png'), root_path
+        = link_to image_tag('MyDefiPieLogo.png', :style => 'width:80px'), root_path
       .site-menu.afclr
         %a.menu_expand.afclr{:href => "javascript:void(1);"}
         %ul.nav-menu.afclr
@@ -14,8 +14,8 @@
             %li= link_to t('backtest_title'), graph_path(1)
             %li= link_to t('settings'), setting_path(1)
           - else
-            %li= link_to t('synthetics'), synthetics_index_pies_path
-            %li= link_to t('balancer_pools'), balancer_index_pies_path
+            %li= link_to t('synthetics'), balancer_pools_path(:uma => true)
+            %li= link_to t('balancer_pools'), balancer_pools_path
       .r_hright
         %ul.h_hrih.afclr
           - if signed_in?

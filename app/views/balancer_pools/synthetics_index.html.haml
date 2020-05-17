@@ -1,0 +1,32 @@
+- provide(:title, t('synthetics'))
+= render 'layouts/pie_header'
+.c_customer.afclr
+  .wrapper
+    .re_main.afclr
+      .ab_head.afclr
+        %h1= t('synthetics')
+      .in_iner_pag.afclr
+        - if @synthetics.empty?
+          %h3 No active UMA Synthetics
+        - else
+          %table.table.striped-table
+            %tr
+              %th Price Identifier
+              %th Address
+              %th Symbol
+              %th Name
+              %th Status
+              %th Collateralization
+            - @synthetics.each do |syn|
+              %tr
+                %td= syn[:price_identifier]
+                %td= syn[:uma_address]
+                %td= syn[:token_symbol]
+                %td= syn[:token_name]
+                %td= syn[:status]
+                %td
+                  .progress.progress-bar-animated
+                    .progress-bar.progress-bar-striped{:class => "#{syn[:progress_class]}", :style => "width:100%", :role => "progressbar"}
+                      == #{syn[:collateralization].round}%
+
+  = render 'layouts/pie_footer'

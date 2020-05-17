@@ -195,3 +195,9 @@ if 0 == UmaExpiryDate.count
   UmaExpiryDate.create(:date_str => '6/1/2021', :unix => '1622505600', :ordinal => 13)
   UmaExpiryDate.create(:date_str => '7/1/2021', :unix => '1625097600', :ordinal => 14)
 end
+
+if 0 == PriceIdentifier.count
+  PriceIdentifier.create(:whitelisted => 'MyDefiPie-1')
+  PriceIdentifier.create(:whitelisted => 'MyDefiPie-2')
+  PriceIdentifier.create(:whitelisted => 'MyDefiPie-3')
+end

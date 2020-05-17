@@ -35,6 +35,7 @@ class Pie < ApplicationRecord
   has_one :stable_coin
   has_one :balancer_pool
   has_one :setting, :through => :user
+  has_one :price_identifier
   
   has_and_belongs_to_many :stocks
   has_and_belongs_to_many :etfs

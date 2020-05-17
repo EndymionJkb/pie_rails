@@ -5,7 +5,7 @@ class BalancerPoolsController < ApplicationController
   
   respond_to :html, :js
   
-  before_action :authenticate_user!
+  before_action :authenticate_user!, :except => [:index]
   
   def create
     @pool = BalancerPool.find(params[:pool_id])
@@ -229,13 +229,74 @@ class BalancerPoolsController < ApplicationController
       
       @collateralization = @total_value / syn_data[:investment] * 100
       
-      if @collateralization < 175
-        @progress_class = 'bg-danger'
-      elsif @collateralization > 200
-        @progress_class = 'bg-success'
-      else
-        @progress_class = 'bg-warning'
+      @progress_class = get_progress_class(@collateralization)
+    end
+  end
+  
+  def index
+    if 'true' == params['uma']
+      pools = BalancerPool.where('uma_address IS NOT NULL')
+      @synthetics = []
+      
+      pools.each do |pool|
+        pie = pool.pie
+        syn_data = YAML::load(pie.uma_snapshot)
+        current_syn = {:starting_value => syn_data[:investment]}
+        total_value = 0
+        
+        pie.etfs.each do |etf|
+          data = syn_data[:slices][etf.ticker]
+          current_price = etf.current_price
+          total_value += data[:shares] * current_price
+        end
+        
+        pie.stocks.each do |etf|
+          data = syn_data[:slices][stock.cca_id]
+          current_price = etf.current_price
+          total_value += data[:shares] * current_price
+        end
+        
+        collateralization = total_value / syn_data[:investment] * 100
+        
+        current_syn[:current_value] = total_value
+        current_syn[:collateralization] = collateralization
+        current_syn[:progress_class] = get_progress_class(collateralization)
+        current_syn[:price_identifier] = pie.price_identifier.whitelisted
+        current_syn[:uma_address] = pool.uma_address
+        current_syn[:token_symbol] = pie.uma_token_symbol
+        current_syn[:token_name] = pie.uma_token_name
+        # Is it exipired?
+        expiry = UmaExpiryDate.find_by_unix(pie.uma_expiry_date).date_str
+        exp_date = Date.strptime(expiry, '%m/%d/%Y')
+        diff = (exp_date - Date.today).to_i
+        if 0 == diff
+          current_syn[:status] = 'Expires today!'
+        elsif diff > 0
+          current_syn[:status] = "Expires #{expiry} (#{diff} days)"
+        else
+          current_syn[:status] = "Expired #{expiry} (#{-diff} days ago)"
+        end          
+        
+        @synthetics.push(current_syn)
+      end            
+      
+      render 'synthetics_index'
+    else  
+      pools = BalancerPool.where('bp_address IS NOT NULL')
+      @balancers = []
+      
+      pools.each do |pool|
+        pie = pool.pie
+        @balancers.push({:address => pool.bp_address,
+                         :url => pool.balancer_url,
+                         :gold => pie.pct_gold,
+                         :equities => pie.pct_equities,
+                         :crypto => pie.pct_crypto,
+                         :cash => pie.pct_cash,
+                         :synthetic => pie.price_identifier.nil? ? nil : pie.price_identifier.whitelisted})
       end
+      
+      render 'balancer_index'
     end
   end
   
@@ -244,5 +305,17 @@ private
     unless @pool.user == current_user
       redirect_to root_path, :alert => 'Wrong User'
     end
+  end
+  
+  def get_progress_class(collateralization)
+    if collateralization < Pie::UMA_COLLATERALIZATION * 100
+      progress_class = 'bg-danger'
+    elsif collateralization > (Pie::UMA_COLLATERALIZATION + 0.2) * 100
+      progress_class = 'bg-success'
+    else
+      progress_class = 'bg-warning'
+    end
+    
+    progress_class    
   end
 end
