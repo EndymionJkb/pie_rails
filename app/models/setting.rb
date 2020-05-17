@@ -21,7 +21,7 @@ class Setting < ApplicationRecord
   PREDICTION = 'Prediction Market'
   EXCHANGES = 'Exchanges'
   FINANCE = 'Finance'
-  INTEREST = 'Interest'
+  INTEREST = 'Lending'
   CATEGORIES = [LARGE_CAP, PREDICTION, EXCHANGES, FINANCE, INTEREST]
   
   STABLE_COINS = ['USDC', 'DAI', 'USDT', 'TUSD', 'TCAD', 'TAUD', 'TGBP', 'THKD', 'USDS']

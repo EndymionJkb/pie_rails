@@ -17,7 +17,7 @@ class BalancerPoolsController < ApplicationController
                             :uma_address => '0x3b38561ec34300e97551aa1cded230c39c044d99')
     @alloc = YAML::load(@pool.allocation)
     
-    render 'show'
+    redirect_to @pool
   end
    
   def edit    

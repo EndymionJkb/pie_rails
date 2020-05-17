@@ -29,6 +29,12 @@
               %td= number_with_delimiter(data[:shares].round)
               %td= number_to_currency(data[:price].round(2))
               %td{:style => "color:#{data[:performance] < 0 ? 'red' : 'green'}"}== #{data[:performance].round(2)}%
+          %tr
+            %td Total
+            %td
+            %td
+            %td
+            %td= number_to_currency(@total_value.round(2))
         = label_tag :amount
         = number_field_tag :amount, :min => 0
         %br= link_to 'Deposit Collateral', '#', :class => 'btn btn-primary', :onclick => 'alert("Deposit!");'
@@ -49,8 +55,10 @@
             - @pool_config.each do |pc|
               %tr
                 %td{:title => "Denorm: #{pc[:denorm]}"}
-                  = number_field_tag 'weight_#{pc[:coin]}', pc[:weight], :min => 2, :max => 98, :class => 'short_input'
+                  = number_field_tag "weight_#{pc[:coin]}", pc[:weight], :min => 2, :max => 98, :class => 'short_input balancer_input', :onchange => "update_weights();"
                 %td= pc[:coin]
                 %td= number_with_delimiter(pc[:amount].round(2))
+          #balancer_total
+            Total: 100%
           %hr
-          = link_to 'Adjust Weights', '#', :class => 'btn btn-primary', :onclick => 'alert("Adjusting!");'
+          = link_to 'Adjust Weights', '#', :id => 'adjust_weights', :class => 'btn btn-primary', :onclick => 'alert("Adjusting!");'

@@ -29,6 +29,8 @@ class Pie < ApplicationRecord
   
   MAX_EQUITIES = 8
   
+  UMA_COLLATERALIZATION = 1.75
+  
   has_one :crypto
   has_one :stable_coin
   has_one :balancer_pool
@@ -127,7 +129,7 @@ class Pie < ApplicationRecord
     
     # If there are equities, and the collateral is an AAVE coin, add that in as well
     if self.pct_equities > 0 and Setting::AAVE_COLLATERAL.include?(self.uma_collateral)
-      needs[self.uma_collateral] = self.pct_equities.to_f / 100
+      needs[self.uma_collateral] = self.pct_equities.to_f / 100 * UMA_COLLATERALIZATION
     end
     
     needs    

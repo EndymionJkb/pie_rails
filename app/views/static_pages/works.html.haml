@@ -3,7 +3,73 @@
 .c_customer.afclr
   .wrapper
     .re_main.afclr
-      .ab_head.afclr
-        %h1= t('how_it_works')
       .in_iner_pag.afclr
-        Text
+        %center
+          = image_tag 'MyDefiPieLogo.png', :style => 'width:40px'
+          Powered by:
+          = image_tag 'balancer.png', :style => 'width:50px'
+          = image_tag 'uma.png', :style => 'width:50px'
+          = image_tag 'uniswap.png', :style => 'width:50px'
+          = image_tag 'aave.svg', :style => 'width:50px'
+          = image_tag 'pTokens.png', :style => 'width:50px'
+          = image_tag 'ens.png', :style => 'width:50px'
+          = image_tag 'portis-logo.jpg', :style => 'width:50px'
+        %hr
+        .row
+          .col-md-6
+            %h2 Create a customized investment portfolio
+            %ul
+              %li Diversifies over gold, stocks and ETFs, crypto, and cash
+              %li Earns interest on top of investment return
+              %li Is automatically and effortlessly re-balanced to keep you on track
+              %li Is backed by decision support analytics, using a mix of backtesting and forecasting
+          .col-md-6
+            %h2 Simple 3-step process
+            %ol
+              %li Choose your allocation. You can also copy other successful portfolios, eToro style
+              %li
+                Design your balancer. Choose the amount you want to invest, then connect to a wallet with either
+                = link_to 'Metamask', 'https://metamask.io', :target => '_blank'
+                (for the crypto-savvy), or 
+                = link_to 'Portis', 'https://portis.io', :target => '_blank'
+                (for the masses). If you’ve registered your address with
+                = link_to 'ENS', 'https://ens.domains', :target => '_blank'
+                , you’ll see that name (and avatar) on the screen.
+              %li
+                Blockchain Defi magic then creates an UMA Synthetic, acquires any missing tokens through
+                = link_to 'AAVE', 'https://aave.com', :target => '_blank'
+                or
+                = link_to 'Uniswap', 'https://https://uniswap.exchange/swap', :target => '_blank'
+                and funds the
+                = link_to 'Balancer', 'https://balancer.finance/', :target => '_blank'
+              %em You now have publicly tradable Balancer, with the custom allocation you designed. You can also monitor and adjust both the Synthetic and the Balancer on the site.
+        %table.table
+          %tr
+            %th Commodity
+            %th Implementation
+          %tr
+            %td Gold
+            %td
+              = image_tag 'paxg.png', :style => 'width:50px'
+              PAXG, by
+              = link_to 'PAXOS', 'https://www.paxos.com/', :target => '_blank'
+              Paxos is a regulated financial institution building infrastructure to enable movement between physical and digital assets
+          %tr  
+            %td Equities
+            %td
+              = image_tag 'uma.png'
+              = link_to 'UMA Synthetics', 'https://umaproject.org/', :target => '_blank'
+              Tokens and derivatives to trade
+              %em anything!
+          %tr
+            %td Crypto
+            %td
+              A basket of popular currencies, focused on your choice of growth industry: Large Cap, Prediction, Exchanges, Finance, and Lending.
+              Notably including direct exposure to Bitcoin through
+              = image_tag 'pTokens.png', :style => 'width:50px'
+              = link_to 'pTokens', 'https://ptokens.io', :target => '_blank' 
+              == - other non-Ethereum coins coming soon
+          %tr
+            %td Cash
+            %td A basket of your choice of stable coins: centralized, decentralized, with a variety of base fiat currencies
+
