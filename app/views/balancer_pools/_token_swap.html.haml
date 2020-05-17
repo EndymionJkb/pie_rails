@@ -6,7 +6,7 @@
   - @transforms.each do |t|
     %li
       = image_tag t[:method], :style => 'width:40px'
-      == #{number_with_delimiter(t[:amount])} #{t[:src]} to #{t[:dest]}
+      == #{number_with_delimiter(t[:amount].round(1))} #{t[:src]} to #{t[:dest]}
   %hr
   - if @pool.swaps_completed
     = link_to 'Swaps Completed', '#',:style => 'pointer-events: none;', :class => 'btn btn-primary', :disabled => true

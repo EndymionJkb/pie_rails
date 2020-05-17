@@ -777,8 +777,8 @@ private
             @encoding[:transforms].push({:method => 'Uniswap', 
                                          :src_coin => src_coin.address,
                                          :dest_coin => dest_coin.address,
-                                         :num_tokens => short[:raw_short],
-                                         :amount => src_coin.to_wei(short[:raw_short]) })
+                                         :num_tokens => short[:short],
+                                         :amount => src_coin.to_wei(short[:short]) })
             # This shortfall has been met, so stop
             break
           elsif balance.round > 0
