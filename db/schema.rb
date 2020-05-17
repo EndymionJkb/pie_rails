@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_05_14_021331) do
+ActiveRecord::Schema.define(version: 2020_05_17_004209) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -22,6 +22,7 @@ ActiveRecord::Schema.define(version: 2020_05_14_021331) do
     t.text "allocation"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "swaps_completed", default: false, null: false
     t.index ["pie_id"], name: "index_balancer_pools_on_pie_id"
   end
 
@@ -86,6 +87,7 @@ ActiveRecord::Schema.define(version: 2020_05_14_021331) do
     t.string "uma_collateral", limit: 8
     t.string "uma_token_name", limit: 32
     t.string "uma_expiry_date", limit: 16
+    t.text "uma_snapshot"
     t.index ["user_id"], name: "index_pies_on_user_id"
   end
 

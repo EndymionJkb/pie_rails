@@ -151,7 +151,11 @@ class BalanceCalculator
         @disposition[coin_out] = ["Take #{amount_needed.round(2)} #{coin_out} from balance"]
         coin_data = CoinInfo.find_by_coin('pBTC')
         
-        @encoding[:pool].push({:coin => coin_data.address, :amount => coin_data.to_wei(amount_needed), :denorm => Utilities.to_wei(pct*50) })
+        @encoding[:pool].push({:coin => coin_data.address,
+                               :num_tokens => amount_needed,
+                               :amount => coin_data.to_wei(amount_needed),
+                               :weight => pct,
+                               :denorm => Utilities.to_wei(pct*50) })
       else
         @ptoken_errors.push({:coin => coin_out, :amount => amount_needed, :address => '14a4aHGFggMCne6AuVszrtiDfSZbcCr51L'})
       end
@@ -170,7 +174,10 @@ class BalanceCalculator
         stable_in['USDT'] -= amount_needed
         @disposition['USDT'] = ["Take #{amount_needed} from USDT balance"]
         coin_data = CoinInfo.find_by_coin('USDT')
-        @encoding[:pool].push({:coin => coin_data.address, :amount => coin_data.to_wei(amount_needed), 
+        @encoding[:pool].push({:coin => coin_data.address,
+                               :num_tokens => amount_needed,
+                               :amount => coin_data.to_wei(amount_needed), 
+                               :weight => stable_out['USDT'],
                                :denorm => Utilities.to_wei(stable_out['USDT'] * 50.0)})
         if 0 == stable_in['USDT']
           stable_in.delete('USDT')
@@ -208,7 +215,10 @@ class BalanceCalculator
         amount_needed = pct * @investment / price
         try_eth = false
         coin_data = CoinInfo.find_by_coin(coin)
-        @encoding[:pool].push({:coin => coin_data.address, :amount => coin_data.to_wei(amount_needed),
+        @encoding[:pool].push({:coin => coin_data.address,
+                               :num_tokens => amount_needed,
+                               :amount => coin_data.to_wei(amount_needed),
+                               :weight => pct,
                                :denorm => Utilities.to_wei(pct*50.0) })
         
         # Do we have enough atokens?
@@ -239,6 +249,7 @@ class BalanceCalculator
               @encoding[:transforms].push({:method => 'AAVE', 
                                            :src_coin => src_coin.address,
                                            :dest_coin => dest_coin.address,
+                                           :num_tokens => amount_needed.round(2),
                                            :amount => src_coin.to_wei(amount_needed) })
             else
               try_eth = true
@@ -256,6 +267,7 @@ class BalanceCalculator
               @encoding[:transforms].push({:method => 'AAVE', 
                                            :src_coin => src_coin.address,
                                            :dest_coin => dest_coin.address,
+                                           :num_tokens => amount_needed.round(2),
                                            :amount => src_coin.to_wei(amount_needed) })
             else
               try_eth = true
@@ -284,6 +296,7 @@ class BalanceCalculator
               @encoding[:transforms].push({:method => 'AAVE', 
                                            :src_coin => src_coin.address,
                                            :dest_coin => dest_coin.address,
+                                           :num_tokens => amount_needed.round(2),
                                            :amount => src_coin.to_wei(amount_needed) })
               crypto_in['ETH'] -= amount_needed
             else
@@ -693,7 +706,10 @@ private
         @disposition[coin] = [] unless @disposition.has_key?(coin)
         @disposition[coin].push("Take #{amount_needed.round(2)} from #{coin} balance")
         coin_data = CoinInfo.find_by_coin(coin)
-        @encoding[:pool].push({:coin => coin_data.address, :amount => coin_data.to_wei(amount_needed),
+        @encoding[:pool].push({:coin => coin_data.address,
+                               :num_tokens => amount_needed,
+                               :amount => coin_data.to_wei(amount_needed),
+                               :weight => pct,
                                :denorm => Utilities.to_wei(pct*50.0)})
         
         if 0 == coins_in[coin]
@@ -740,7 +756,9 @@ private
       shortfall_amounts.sort_by { |k, v| v[:short] }.each do |coin_out, short|
         coin_data = CoinInfo.find_by_coin(coin_out)
         @encoding[:pool].push({:coin => coin_data.address,
+                               :num_tokens => short[:raw_short],
                                :amount => coin_data.to_wei(short[:raw_short]),
+                               :weight => short[:pct],
                                :denorm => Utilities.to_wei(short[:pct]*50.0) })
 
         stable_in.sort_by { |k, v| -v }.each do |coin_in, balance|
@@ -759,6 +777,7 @@ private
             @encoding[:transforms].push({:method => 'Uniswap', 
                                          :src_coin => src_coin.address,
                                          :dest_coin => dest_coin.address,
+                                         :num_tokens => short[:raw_short],
                                          :amount => src_coin.to_wei(short[:raw_short]) })
             # This shortfall has been met, so stop
             break
@@ -774,6 +793,7 @@ private
             @encoding[:transforms].push({:method => 'Uniswap', 
                                          :src_coin => src_coin.address,
                                          :dest_coin => dest_coin.address,
+                                         :num_tokens => amount_src_coin_left,
                                          :amount => src_coin.to_wei(amount_src_coin_left) })
           end
         end

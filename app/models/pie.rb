@@ -17,6 +17,7 @@ require 'pie_calculator'
 #  uma_collateral  :string(8)
 #  uma_token_name  :string(32)
 #  uma_expiry_date :string(16)
+#  uma_snapshot    :text
 #
 class Pie < ApplicationRecord
   belongs_to :user, :optional => true
@@ -206,7 +207,7 @@ class Pie < ApplicationRecord
   end
 
   def uma_token_symbol
-    "MDPSNX#{self.id}"
+    "MYDEFIPI-#{self.id}"
   end
   
   def uma_next_month
@@ -257,7 +258,7 @@ private
       equal_weight = 100.0 / (self.etfs.count + self.stocks.count)
       
       self.etfs.each do |e|
-        data.push(["#{e.ticker} (#{e.fund_name})", equal_weight])      
+        data.push([e.display_name, equal_weight])      
       end
       self.stocks.each do |s|
         data.push(["#{s.company_name} (#{s.sector})", equal_weight])      

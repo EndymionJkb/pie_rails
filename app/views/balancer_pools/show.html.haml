@@ -4,12 +4,44 @@
   .c_customer.afclr
     .wrapper
       .re_main.afclr
-        .ab_head.afclr
-          %h1== #{t('monitor_balancer')} for '#{@pie.name}'
-        .in_iner_pag.afclr
-          - unless @pool.uma_address.nil? or 0 == @pie.pct_equities
-            %h3 UMA Synthetic
-            = render :partial => 'uma_synthetic', :locals => {:pie => @pie, :pool => @pool}
-          %h3 Balancer
-          = render :partial => 'balancer', :locals => {:pool => @pool}
-          %br= link_to t('live_balancer'), @pool.balancer_url, :target => '_blank'
+        .progress
+          .progress_inner
+            - @steps.each_with_index  do |step, i|
+              .progress_inner__step
+                %label{:for => "step-#{i + 1}"} #{step}
+            %input{:type => 'radio', :name => 'step', :id => "step-1", :checked => 'checked'}
+            - (1..4).each_with_index  do |i|
+              %input{:type => 'radio', :name => 'step', :id => "step-#{i + 1}"}
+            .progress_inner__bar
+            .progress_inner__bar--set
+            .progress_inner__tabs
+              .tab.tab-1
+                %h1 #{@steps[0]}
+                %p
+                  = render :partial => 'plan_review', :locals => {:pool => @pool}
+              .tab.tab-2
+                %h1 #{@steps[1]}
+                %p
+                  = render :partial => 'synthetic', :locals => {:pool => @pool}
+              .tab.tab-3
+                %h1 #{@steps[2]}
+                %p
+                  = render :partial => 'token_swap', :locals => {:pool => @pool}
+              .tab.tab-4
+                %h1 #{@steps[3]}
+                %p
+                  = render :partial => 'create_balancer', :locals => {:pool => @pool}
+              .tab.tab-5
+                %h1 #{@steps[4]}
+                %p
+                  = render :partial => 'rebalance', :locals => {:pool => @pool}
+            .progress_inner__status
+              .box_base
+              .box_lid
+              .box_ribbon
+              .box_bow
+                .box_bow__left
+                .box_bow__right
+              .box_item
+              .box_tag
+              .box_string

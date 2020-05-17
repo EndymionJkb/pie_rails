@@ -71,7 +71,8 @@ class BalancerPoolsController < ApplicationController
     
     # Update list of coins
     @alloc[:coins_to_use] = @coins_to_use
-    @pool.update_attribute(:allocation, YAML::dump(@alloc))
+    # We might need to do more/different swaps, so reset the flag
+    @pool.update_attributes(:allocation => YAML::dump(@alloc), :swaps_completed => false)
     
     @calculator = BalanceCalculator.new(@pool.pie, @coins_to_use, @alloc[:investment])
 
@@ -167,6 +168,75 @@ class BalancerPoolsController < ApplicationController
     sanity_check
     
     @pie = @pool.pie
+    @steps = ['Review Plan', 'Create Synthetic', 'Swap Tokens', 'Create Balancer', 'Monitor/Adjust']
+    @data = YAML::load(@pool.allocation)
+    # Lots of processing to get the swaps, so do that in the controller
+    if @data.has_key?(:encoding) and @data[:encoding].has_key?(:transforms)
+      @transforms = []
+      @data[:encoding][:transforms].each do |t|
+        tx = {:method => 'AAVE' == t[:method] ? 'aave.svg' : 'uniswap.png'}
+        tx[:src] = CoinInfo.find_by_address(t[:src_coin]).coin
+        tx[:dest] = CoinInfo.find_by_address(t[:dest_coin]).coin
+        tx[:amount] = t[:num_tokens]
+        
+        @transforms.push(tx)
+      end
+    else
+      @transforms = nil
+    end
+    
+    @pool_config = []
+    @data[:encoding][:pool].each do |p|
+      pc = Hash.new
+      pc[:coin] = CoinInfo.find_by_address(p[:coin]).coin
+      pc[:amount] = p[:num_tokens]
+      pc[:weight] = (p[:weight] * 100.0).round(1)
+      pc[:denorm] = (p[:weight] * 50).round(1)
+      
+      @pool_config.push(pc)
+    end
+    
+    if @pool.uma_address.nil?
+      @synthetic = nil
+    else
+      syn_data = YAML::load(@pie.uma_snapshot)
+      @synthetic = {:investment => syn_data[:investment], :slices => Hash.new}
+      @total_value = 0
+      
+      @pie.etfs.each do |etf|
+        data = syn_data[:slices][etf.ticker]
+        current_price = etf.current_price
+        performance = (current_price - data[:price])/data[:price] * 100
+        @total_value += data[:shares] * current_price
+        
+        @synthetic[:slices][etf.ticker] = {:basis => data[:price],
+                                           :shares => data[:shares],
+                                           :price => current_price,
+                                           :performance => performance}
+      end
+
+      @pie.stocks.each do |stock|
+        data = syn_data[:slices][stock.cca_id]
+        current_price = stock.current_price
+        performance = (current_price - data[:price])/data[:price] * 100
+        @total_value += data[:shares] * current_price
+        
+        @synthetic[:slices][stock.company_name] = {:basis => data[:price],
+                                                   :shares => data[:shares],
+                                                   :price => current_price,
+                                                   :performance => performance}
+      end
+      
+      @collateralization = @total_value / syn_data[:investment] * 100
+      
+      if @collateralization < 175
+        @progress_class = 'bg-danger'
+      elsif @collateralization > 200
+        @progress_class = 'bg-success'
+      else
+        @progress_class = 'bg-warning'
+      end
+    end
   end
   
 private

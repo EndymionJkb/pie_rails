@@ -1,0 +1,38 @@
+%h4 Allocation
+%em== Investment: #{number_to_currency(@data[:investment])}
+%br
+%br
+%ul
+  - unless 0 == @pie.pct_gold
+    %li
+      %strong== #{@pie.pct_gold}% Gold
+  - unless 0 == @pie.pct_crypto
+    %li
+      %strong== #{@pie.pct_crypto}% Crypto
+      - c = @pie.crypto
+      %ul.sublist
+        - unless 0 == c.pct_curr1
+          %li== #{c.pct_curr1}% #{c.currency_name(0)}
+        - unless 0 == c.pct_curr2
+          %li== #{c.pct_curr2}% #{c.currency_name(1)}
+        - unless 0 == c.pct_curr3
+          %li== #{c.pct_curr3}% #{c.currency_name(2)}
+  - unless 0 == @pie.pct_cash
+    %li
+      %strong== #{@pie.pct_cash}% Cash
+      - c = @pie.stable_coin
+      %ul.sublist
+        - unless 0 == c.pct_curr1
+          %li== #{c.pct_curr1}% #{c.currency_name(0)}
+        - unless 0 == c.pct_curr2
+          %li== #{c.pct_curr2}% #{c.currency_name(1)}
+        - unless 0 == c.pct_curr3
+          %li== #{c.pct_curr3}% #{c.currency_name(2)}
+  - unless 0 == @pie.pct_equities
+    %li
+      %strong== #{@pie.pct_equities}% Equities
+      %ul.sublist
+        - @pie.etfs.each do |etf|
+          %li= etf.display_name
+        - @pie.stocks.each do |stock|
+          %li= stock.display_name

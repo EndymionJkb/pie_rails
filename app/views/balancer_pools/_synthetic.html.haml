@@ -1,0 +1,29 @@
+- if 0 == @pie.pct_equities
+  %h4 Nothing to see here
+  %p With no allocation to equities, you do not need a synthetic
+- else
+  %h4== Allocation: #{@pie.pct_equities}% Equities
+  %strong Collateral:
+  = @pie.uma_collateral
+  %br
+  %strong Symbol:
+  == #{@pie.uma_token_symbol} (#{@pie.uma_token_name})
+  %br
+  %strong Expiring:
+  = UmaExpiryDate.find_by_unix(@pie.uma_expiry_date).date_str
+  %p== 
+  %hr
+  %ul.sublist
+  %strong Constituents
+  - @pie.etfs.each do |etf|
+    %li= etf.display_name
+  - @pie.stocks.each do |stock|
+    %li= stock.display_name
+%hr
+- if @pool.uma_address.nil?
+  = link_to 'Create Synthetic', '#', :class => 'btn btn-primary', :onclick => 'alert("Creating!");'
+- else
+  = link_to 'Synthetic Created', '#', :style => 'pointer-events: none;', :title => "Contract address: #{@pool.uma_address}", :class => 'btn btn-primary', :disabled => true
+  %br
+  %br
+  %p== Contract address: #{@pool.uma_address}

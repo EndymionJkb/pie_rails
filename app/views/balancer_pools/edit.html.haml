@@ -135,21 +135,23 @@
       $('#coin_balances').show();
     }
     
-    //var need_btc_address = $('#need_btc_address').val();
-    //if ('true' == need_btc_address) {
-      //fillInBTCAddress();
-    //}
+    var need_btc_address = $('#need_btc_address').val();
+    if ('true' == need_btc_address) {
+      fillInBTCAddress();
+    }
   });
   
-  // async function fillInBTCAddress() {
-  //    var pBTC = new pBTC({
-  //        ethProvider: window.web3.currentProvider,
-  //        btcNetwork: 'bitcoin'
-  //      });
-  //    const depositAddress = await pbtc.getDepositAddress();
+   async function fillInBTCAddress() {
+      var pBTC = new pBTC({
+          ethProvider: window.web3.currentProvider,
+          btcNetwork: 'bitcoin'
+        });
+      //pBTC().ethProvide = window.web3.currentProvider;
+      //pBTC().btcNetwork = 'bitcoin'
+      const depositAddress = await pBTC.getDepositAddress();
       
-  //    $('#btc_address').text(depositAddress);
-  //}
+      $('#btc_address').text(depositAddress);
+  }
   
   async function loadWallet(wallet) {
     if ('Metamask' == wallet) {

@@ -31,6 +31,22 @@ class Stock < ApplicationRecord
   
   validates_numericality_of :forecast_e, :forecast_s, :forecast_g, :alpha, :m1_return, :m3_return, :m6_return, :y1_return
 
+  # For UMA calculations; replace with real feed
+  def current_price
+    ref_price = PriceHistory.where(:coin => self.cca_id).order('date DESC').limit(1).first.price
+    if Random.rand < 0.5
+      price = ref_price * (1 - Random.rand(5)/100.0)
+    else
+      price = ref_price * (1 - Random.rand(10)/100.0)      
+    end
+    
+    price
+  end
+
+  def display_name
+    "#{self.company_name} (#{self.sector})"
+  end
+
   def self.find_best(setting, top_n=250)
     min_e, max_e = Stock.all.minimum(:forecast_e), Stock.all.maximum(:forecast_e)
     min_s, max_s = Stock.all.minimum(:forecast_s), Stock.all.maximum(:forecast_s)

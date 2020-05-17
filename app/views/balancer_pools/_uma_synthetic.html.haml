@@ -7,11 +7,11 @@
   - pie.etfs.each do |etf|
     %tr
       %td ETF
-      %td== #{etf.ticker} (#{etf.fund_name})
+      %td= etf.display_name
   - pie.stocks.each do |stock|
     %tr
       %td Stock
-      %td= stock.company_name
+      %td= stock.display_name
 %br
 %p
   == #{t('token_symbol')}:

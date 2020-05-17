@@ -1,0 +1,14 @@
+- if @transforms.nil?
+  %h4 Nothing to see here
+  %p You had sufficient token balances to fund the Pie - no swapping necessary
+- else
+  %ul
+  - @transforms.each do |t|
+    %li
+      = image_tag t[:method], :style => 'width:40px'
+      == #{number_with_delimiter(t[:amount])} #{t[:src]} to #{t[:dest]}
+  %hr
+  - if @pool.swaps_completed
+    = link_to 'Swaps Completed', '#',:style => 'pointer-events: none;', :class => 'btn btn-primary', :disabled => true
+  - else
+    = link_to 'Swap Tokens', '#', :class => 'btn btn-primary', :onclick => 'alert("Swapping!");'
