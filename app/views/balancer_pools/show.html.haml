@@ -6,6 +6,9 @@
       .re_main.afclr
         .progress
           .progress_inner
+            = hidden_field_tag :emp_creator, @empCreatorAddress
+            = hidden_field_tag :uma_collateral, @uma_collateral_address
+            = hidden_field_tag :uma_expiry, @pie.uma_expiry_date
             - @steps.each_with_index  do |step, i|
               .progress_inner__step
                 %label{:for => "step-#{i + 1}"} #{step}
@@ -45,3 +48,4 @@
               .box_item
               .box_tag
               .box_string
+= javascript_include_tag 'step_support.js'

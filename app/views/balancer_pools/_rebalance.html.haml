@@ -36,7 +36,7 @@
             %td
             %td= number_to_currency(@total_value.round(2))
         = label_tag :amount
-        = number_field_tag :amount, :min => 0
+        = number_field_tag :amount, nil, :min => 0
         %br= link_to 'Deposit Collateral', '#', :class => 'btn btn-primary', :onclick => 'alert("Deposit!");'
         %br= link_to 'Withdraw Collateral', '#', :class => 'btn btn-primary', :onclick => 'alert("Withdraw!");'
         %br= link_to 'Redeem Tokens', '#', :title => 'After expiration', :class => 'btn btn-primary', :onclick => 'alert("Redeem!");', :style => 'pointer-events: none;'
@@ -61,4 +61,4 @@
           #balancer_total
             Total: 100%
           %hr
-          = link_to 'Adjust Weights', '#', :id => 'adjust_weights', :class => 'btn btn-primary', :onclick => 'alert("Adjusting!");'
+          = link_to 'Adjust Weights', '#', :class => 'btn btn-primary', :onclick => 'alert("Adjusting!");'

@@ -1,0 +1,13 @@
+var last_click = null;
+  
+$(document).ready(function(e) {
+    <% (1..5).each do |step| %>
+    $('#step-<%=step%>').click(function() {
+       if (last_click) {
+          $('.' + last_click).removeAttr('style');
+       }
+       $('.tab-<%=step%>').attr('style', 'z-index:1');
+       last_click = 'tab-<%=step%>';
+    });
+    <% end %>
+});

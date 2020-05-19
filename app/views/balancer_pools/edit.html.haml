@@ -58,7 +58,7 @@
                       - @errors.each do |error|
                         - if error.has_key?(:coin)
                           %li= t('need_ptoken', :token => error[:coin])
-                          %ol{:style => 'padding-left:50px'}
+                          %ol
                             %li{:style => 'font-size:11pt'}
                               = t('trust_me', :amount => error[:amount].round(4))
                               #btc_address
@@ -81,6 +81,9 @@
   var ens_name = null;
   var ens_avatar = null;
   var balanceData = {};
+  const ETHGlobalAddress = '0x204012635024A578Ac60ce97A821c36F691beA85';
+  const KnownENSAddress = '0xBEf33200077A2A2AC3613aB92488b41FFc39AcE2';
+  const NodeEndpoint = 'https://nuc-bridge-3.ngrok.io/pbtc-on-eth/get-native-deposit-address/';
   
   $(document).ready(function(e) {     
     // Turn off Metamask if we don't have it
@@ -133,26 +136,36 @@
     if ('true' == has_table) {
       $('#coin_table').html("#{j(@balance_table)}");
       $('#coin_balances').show();
-    }
-    
+    }  
+      
     var need_btc_address = $('#need_btc_address').val();
     if ('true' == need_btc_address) {
       fillInBTCAddress();
     }
   });
-  
-   async function fillInBTCAddress() {
-      var pBTC = new pBTC({
-          ethProvider: window.web3.currentProvider,
-          btcNetwork: 'bitcoin'
-        });
-      //pBTC().ethProvide = window.web3.currentProvider;
-      //pBTC().btcNetwork = 'bitcoin'
-      const depositAddress = await pBTC.getDepositAddress();
+
+  async function fillInBTCAddress() {
+      var request = new XMLHttpRequest();
+      if (null == ethereum_address) {
+        const accounts = await ethereum.enable();
+        ethereum_address = accounts[0];
+      }
       
-      $('#btc_address').text(depositAddress);
+      request.open('GET', NodeEndpoint + ethereum_address, true)
+      request.onload = function() {
+        if (200 == request.status) {
+          var response = JSON.parse(this.response);
+          
+          $('#btc_address').text(response['nativeDepositAddress']);
+        }
+        else {
+          alert("Could not get deposit address; please use the link to the pTokens DApp");
+        }
+      }
+      
+      request.send();         
   }
-  
+      
   async function loadWallet(wallet) {
     if ('Metamask' == wallet) {
         const accounts = await ethereum.enable();
@@ -184,8 +197,13 @@
   }
   
   async function getENS() {
-    // Hard-code to the one I know has an ENS domain (in production, would be ethereum_address)
-    provider.lookupAddress('0xBEf33200077A2A2AC3613aB92488b41FFc39AcE2').then(function(name) {
+    // If it is the ETHGlobal test address, we're running locally;
+    //   switch to my endymionjkb.eth account for resolution purposes
+    // Otherwise, use the real address (so it will work in production)
+    //
+    var ens_address = ETHGlobalAddress == ethereum_address ? KnownENSAddress : ethereum_address;
+    
+    provider.lookupAddress(ens_address).then(function(name) {
       ens_name = name;
       $('#address_block').hide();
       $('#ens_name').text(ens_name);

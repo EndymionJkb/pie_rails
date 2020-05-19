@@ -166,9 +166,14 @@ class BalancerPoolsController < ApplicationController
   def show
     @pool = BalancerPool.find(params[:id])
     sanity_check
-    
     @pie = @pool.pie
     @steps = ['Review Plan', 'Create Synthetic', 'Swap Tokens', 'Create Balancer', 'Monitor/Adjust']
+    
+    # Read the address of the ExpiringMultiPartyCreator (from the uma_prep script)
+    @empCreatorAddress = IO.read('db/data/ExpiringMultiPartyCreator.txt')
+    @expiry_date_str = UmaExpiryDate.find_by_unix(@pie.uma_expiry_date).date_str
+    @uma_collateral_address = CoinInfo.find_by_coin(@pie.uma_collateral).address rescue nil
+    
     @data = YAML::load(@pool.allocation)
     # Lots of processing to get the swaps, so do that in the controller
     if @data.has_key?(:encoding) and @data[:encoding].has_key?(:transforms)

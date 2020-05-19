@@ -10,7 +10,7 @@
   == #{@pie.uma_token_symbol} (#{@pie.uma_token_name})
   %br
   %strong Expiring:
-  = UmaExpiryDate.find_by_unix(@pie.uma_expiry_date).date_str
+  = @expiry_date_str
   %p== 
   %hr
   %ul.sublist
@@ -20,10 +20,18 @@
   - @pie.stocks.each do |stock|
     %li= stock.display_name
 %hr
-- if @pool.uma_address.nil?
-  = link_to 'Create Synthetic', '#', :class => 'btn btn-primary', :onclick => 'alert("Creating!");'
+- if !@pool.uma_address.nil?
+  = link_to 'Create Synthetic', '#', :title => 'Does this work?', :class => 'btn btn-primary', :onclick => "blockchain_call_uma();"
 - else
-  = link_to 'Synthetic Created', '#', :style => 'pointer-events: none;', :title => "Contract address: #{@pool.uma_address}", :class => 'btn btn-primary', :disabled => true
+  = link_to 'Synthetic Created', '#', :style => 'pointer-events: none;', :title => "Contract address: #{@pool.uma_address}", :class => 'btn btn-primary'
   %br
   %br
   %p== Contract address: #{@pool.uma_address}
+:javascript
+  function blockchain_call_uma() {
+    var empCreator = $('#emp_creator').val();
+    var collateral = $('#uma_collateral').val();
+    var expiry = $('#uma_expiry').val();
+    
+    create_synthetic(empCreator, collateral, expiry);
+  }
