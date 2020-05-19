@@ -81,9 +81,6 @@
   var ens_name = null;
   var ens_avatar = null;
   var balanceData = {};
-  const ETHGlobalAddress = '0x204012635024A578Ac60ce97A821c36F691beA85';
-  const KnownENSAddress = '0xBEf33200077A2A2AC3613aB92488b41FFc39AcE2';
-  const NodeEndpoint = 'https://nuc-bridge-3.ngrok.io/pbtc-on-eth/get-native-deposit-address/';
   
   $(document).ready(function(e) {     
     // Turn off Metamask if we don't have it
@@ -144,6 +141,11 @@
     }
   });
 
+  // Called if we need a pToken (pBTC in this case)
+  // Get a BTC deposit address, given an Ethereum address
+  // Depending on the path (reload vs first time), we may or may not
+  //   have ethereum_address defined. So get it if it's undefined
+  //
   async function fillInBTCAddress() {
       var request = new XMLHttpRequest();
       if (null == ethereum_address) {
@@ -151,7 +153,7 @@
         ethereum_address = accounts[0];
       }
       
-      request.open('GET', NodeEndpoint + ethereum_address, true)
+      request.open('GET', '#{NODE_ENDPOINT}' + ethereum_address, true)
       request.onload = function() {
         if (200 == request.status) {
           var response = JSON.parse(this.response);
@@ -166,6 +168,14 @@
       request.send();         
   }
       
+  // Depending on the button they pushed (encoded in the wallet argument)
+  // Load the wallet from either Metamask or Portis
+  // Set ethereum_address
+  // If successful, set all the connection variables, show the address (maybe temporarily),
+  //   then call getENS() to look up the address - if found, it will replace the address with
+  //   the ENS domain name (and display the avatar, if present)
+  // Finally, call loadBalances to retrieve the token balances
+  //
   async function loadWallet(wallet) {
     if ('Metamask' == wallet) {
         const accounts = await ethereum.enable();
@@ -175,7 +185,7 @@
         $('#show_portis').hide();
     }
     else if ('Portis' == wallet) {
-        portis = new Portis('9d29d798-81ea-45ff-b88b-0bf97fb207be', 'mainnet');
+        portis = new Portis('#{PORTIS_APP_ID}', 'mainnet');
         web3 = new Web3(portis.provider);
         provider = new ethers.providers.Web3Provider(portis.provider);
         web3.eth.getAccounts((error, accounts) => {
@@ -191,17 +201,17 @@
          $('#address_block').show();
          $('#eth_address').text("Address: " + ethereum_address);
          
-         getENS();
-         loadBalances();
+         getENS(ethereum_address);
+         loadBalances(ethereum_address);
       }
   }
   
-  async function getENS() {
+  async function getENS(ethereum_address) {
     // If it is the ETHGlobal test address, we're running locally;
     //   switch to my endymionjkb.eth account for resolution purposes
     // Otherwise, use the real address (so it will work in production)
     //
-    var ens_address = ETHGlobalAddress == ethereum_address ? KnownENSAddress : ethereum_address;
+    var ens_address = '#{ETH_GLOBAL_ADDRESS}' == ethereum_address ? '#{ENDYMIONJKB_ETH}' : ethereum_address;
     
     provider.lookupAddress(ens_address).then(function(name) {
       ens_name = name;
@@ -209,11 +219,13 @@
       $('#ens_name').text(ens_name);
       $('#ens_block').show();
       
-      getAvatar();
+      getAvatar(ens_name);
     });
   }
     
-  async function loadBalances() {
+  // Get ETH and token balances, given an address
+  // CoinInfo.used has the tokens we care about (ignore cDAI and KICK and whatever else we can't use) 
+  async function loadBalances(ethereum_address) {
      balanceData = await getBalances(ethereum_address);
      
      if (0 == balanceData.size) {
@@ -237,12 +249,12 @@
       }
   }
   
-  async function getAvatar() {
-    const resolver_address = '0x4976fb03C32e5B8cfe2b6cCB31c09Ba78EBaBa41';
-    const resolver_abi = '[{"inputs":[{"internalType":"contract ENS","name":"_ens","type":"address"}],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"bytes32","name":"node","type":"bytes32"},{"indexed":true,"internalType":"uint256","name":"contentType","type":"uint256"}],"name":"ABIChanged","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"bytes32","name":"node","type":"bytes32"},{"indexed":false,"internalType":"address","name":"a","type":"address"}],"name":"AddrChanged","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"bytes32","name":"node","type":"bytes32"},{"indexed":false,"internalType":"uint256","name":"coinType","type":"uint256"},{"indexed":false,"internalType":"bytes","name":"newAddress","type":"bytes"}],"name":"AddressChanged","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"bytes32","name":"node","type":"bytes32"},{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"target","type":"address"},{"indexed":false,"internalType":"bool","name":"isAuthorised","type":"bool"}],"name":"AuthorisationChanged","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"bytes32","name":"node","type":"bytes32"},{"indexed":false,"internalType":"bytes","name":"hash","type":"bytes"}],"name":"ContenthashChanged","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"bytes32","name":"node","type":"bytes32"},{"indexed":false,"internalType":"bytes","name":"name","type":"bytes"},{"indexed":false,"internalType":"uint16","name":"resource","type":"uint16"},{"indexed":false,"internalType":"bytes","name":"record","type":"bytes"}],"name":"DNSRecordChanged","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"bytes32","name":"node","type":"bytes32"},{"indexed":false,"internalType":"bytes","name":"name","type":"bytes"},{"indexed":false,"internalType":"uint16","name":"resource","type":"uint16"}],"name":"DNSRecordDeleted","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"bytes32","name":"node","type":"bytes32"}],"name":"DNSZoneCleared","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"bytes32","name":"node","type":"bytes32"},{"indexed":true,"internalType":"bytes4","name":"interfaceID","type":"bytes4"},{"indexed":false,"internalType":"address","name":"implementer","type":"address"}],"name":"InterfaceChanged","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"bytes32","name":"node","type":"bytes32"},{"indexed":false,"internalType":"string","name":"name","type":"string"}],"name":"NameChanged","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"bytes32","name":"node","type":"bytes32"},{"indexed":false,"internalType":"bytes32","name":"x","type":"bytes32"},{"indexed":false,"internalType":"bytes32","name":"y","type":"bytes32"}],"name":"PubkeyChanged","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"bytes32","name":"node","type":"bytes32"},{"indexed":true,"internalType":"string","name":"indexedKey","type":"string"},{"indexed":false,"internalType":"string","name":"key","type":"string"}],"name":"TextChanged","type":"event"},{"constant":true,"inputs":[{"internalType":"bytes32","name":"node","type":"bytes32"},{"internalType":"uint256","name":"contentTypes","type":"uint256"}],"name":"ABI","outputs":[{"internalType":"uint256","name":"","type":"uint256"},{"internalType":"bytes","name":"","type":"bytes"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"internalType":"bytes32","name":"node","type":"bytes32"}],"name":"addr","outputs":[{"internalType":"address payable","name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"internalType":"bytes32","name":"node","type":"bytes32"},{"internalType":"uint256","name":"coinType","type":"uint256"}],"name":"addr","outputs":[{"internalType":"bytes","name":"","type":"bytes"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"internalType":"bytes32","name":"","type":"bytes32"},{"internalType":"address","name":"","type":"address"},{"internalType":"address","name":"","type":"address"}],"name":"authorisations","outputs":[{"internalType":"bool","name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"bytes32","name":"node","type":"bytes32"}],"name":"clearDNSZone","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"internalType":"bytes32","name":"node","type":"bytes32"}],"name":"contenthash","outputs":[{"internalType":"bytes","name":"","type":"bytes"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"internalType":"bytes32","name":"node","type":"bytes32"},{"internalType":"bytes32","name":"name","type":"bytes32"},{"internalType":"uint16","name":"resource","type":"uint16"}],"name":"dnsRecord","outputs":[{"internalType":"bytes","name":"","type":"bytes"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"internalType":"bytes32","name":"node","type":"bytes32"},{"internalType":"bytes32","name":"name","type":"bytes32"}],"name":"hasDNSRecords","outputs":[{"internalType":"bool","name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"internalType":"bytes32","name":"node","type":"bytes32"},{"internalType":"bytes4","name":"interfaceID","type":"bytes4"}],"name":"interfaceImplementer","outputs":[{"internalType":"address","name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"internalType":"bytes32","name":"node","type":"bytes32"}],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"internalType":"bytes32","name":"node","type":"bytes32"}],"name":"pubkey","outputs":[{"internalType":"bytes32","name":"x","type":"bytes32"},{"internalType":"bytes32","name":"y","type":"bytes32"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"bytes32","name":"node","type":"bytes32"},{"internalType":"uint256","name":"contentType","type":"uint256"},{"internalType":"bytes","name":"data","type":"bytes"}],"name":"setABI","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"internalType":"bytes32","name":"node","type":"bytes32"},{"internalType":"uint256","name":"coinType","type":"uint256"},{"internalType":"bytes","name":"a","type":"bytes"}],"name":"setAddr","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"internalType":"bytes32","name":"node","type":"bytes32"},{"internalType":"address","name":"a","type":"address"}],"name":"setAddr","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"internalType":"bytes32","name":"node","type":"bytes32"},{"internalType":"address","name":"target","type":"address"},{"internalType":"bool","name":"isAuthorised","type":"bool"}],"name":"setAuthorisation","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"internalType":"bytes32","name":"node","type":"bytes32"},{"internalType":"bytes","name":"hash","type":"bytes"}],"name":"setContenthash","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"internalType":"bytes32","name":"node","type":"bytes32"},{"internalType":"bytes","name":"data","type":"bytes"}],"name":"setDNSRecords","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"internalType":"bytes32","name":"node","type":"bytes32"},{"internalType":"bytes4","name":"interfaceID","type":"bytes4"},{"internalType":"address","name":"implementer","type":"address"}],"name":"setInterface","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"internalType":"bytes32","name":"node","type":"bytes32"},{"internalType":"string","name":"name","type":"string"}],"name":"setName","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"internalType":"bytes32","name":"node","type":"bytes32"},{"internalType":"bytes32","name":"x","type":"bytes32"},{"internalType":"bytes32","name":"y","type":"bytes32"}],"name":"setPubkey","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"internalType":"bytes32","name":"node","type":"bytes32"},{"internalType":"string","name":"key","type":"string"},{"internalType":"string","name":"value","type":"string"}],"name":"setText","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"internalType":"bytes4","name":"interfaceID","type":"bytes4"}],"name":"supportsInterface","outputs":[{"internalType":"bool","name":"","type":"bool"}],"payable":false,"stateMutability":"pure","type":"function"},{"constant":true,"inputs":[{"internalType":"bytes32","name":"node","type":"bytes32"},{"internalType":"string","name":"key","type":"string"}],"name":"text","outputs":[{"internalType":"string","name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"}]'
-    var ens = new ethers.Contract(resolver_address,
-                                  JSON.parse(resolver_abi),
+  async function getAvatar(ens_name) {
+    var ens = new ethers.Contract('#{ENS_PUBLIC_RESOLVER}',
+                                  JSON.parse('#{PUBLIC_RESOLVER_ABI.html_safe}'),
                                   provider.getSigner(0));
+
+    // Thank you, ethers! Need to hash the name a certain way, and also convert to Bytes32
     const node = ethers.utils.namehash(ens_name);
     var avatar = await ens.text(node, 'avatar');
     $('#avatar').html("<image src='" + avatar + "'/>");

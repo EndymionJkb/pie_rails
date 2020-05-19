@@ -12,7 +12,7 @@
 - if @pool.bp_address.nil?
   = link_to 'Create Balancer', '#', :class => 'btn btn-primary', :onclick => 'alert("Creating!");'
 - else
-  = link_to 'Balancer Created', '#',:style => 'pointer-events: none;', :title => "Contract address: #{@pool.bp_address}", :class => 'btn btn-primary', :disabled => true
+  = link_to 'Balancer Created', '#', :style => 'pointer-events: none;', :title => "Contract address: #{@pool.bp_address}", :class => 'btn btn-primary'
   %br
   %br
   %p
