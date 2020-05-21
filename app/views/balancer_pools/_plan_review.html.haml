@@ -36,3 +36,5 @@
           %li= etf.display_name
         - @pie.stocks.each do |stock|
           %li= stock.display_name
+  %hr
+  = link_to 'Revise Plan', edit_balancer_pool_path(@pool), :class => 'btn btn-primary' 

@@ -64,8 +64,8 @@
       const empAddress = txResult.logs[0].args.expiringMultiPartyAddress;
             
       // Tell the server the new emp address
-      jQuery.ajax({url:'#{set_uma_address_balancer_pool_path(pool)}.js',
-                   data: {'uma_address': emp.address},
+      jQuery.ajax({url:"#{set_uma_address_balancer_pool_path(pool.id)}.js",
+                   data: {'uma_address': empAddress},
                    type: "PUT",
                    error: function() { alert('Oh noes!'); }, 
                    async: false});

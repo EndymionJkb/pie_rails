@@ -21,7 +21,7 @@
             .progress_inner__bar
             .progress_inner__bar--set
             .progress_inner__tabs
-              .tab.tab-1
+              .tab.tab-1{:style => 'z-index:1'}
                 %h1 #{@steps[0]}
                 %p
                   = render :partial => 'plan_review', :locals => {:pool => @pool}

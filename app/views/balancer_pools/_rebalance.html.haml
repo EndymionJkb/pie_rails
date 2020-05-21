@@ -8,7 +8,9 @@
       - if pool.uma_address.nil?
         %p No Synthetic
       - else
-        %p== Collateralization:
+        %p
+          == Collateralization:&nbsp;
+          %strong== (Minimum: #{(MIN_COLLATERALIZATION * 100).round}%)
         .progress.progress-bar-animated{:style => 'margin-top:10px'}
           .progress-bar.progress-bar-striped#collateral_progress{:class => "#{@progress_class}", :style => "width:100%", :role => "progressbar"}
             #collateralization

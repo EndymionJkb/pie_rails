@@ -37,7 +37,7 @@
         };      
         
         // Tell the server we have completed the swaps
-        jQuery.ajax({url:'#{set_swaps_completed_balancer_pool_path(pool)}.js',
+        jQuery.ajax({url:"#{set_swaps_completed_balancer_pool_path(pool.id)}.js",
                      type: "PUT",
                      error: function() { alert('Oh noes!'); }, 
                      async: false});

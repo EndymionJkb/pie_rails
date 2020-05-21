@@ -56,6 +56,13 @@
           // Set fee and enable trading!
           await bPool.setSwapFee(web3.utils.toWei('#{BALANCER_SWAP_FEE}'));
           await bPool.setPublicSwap(true);
+          
+          // Tell the server the new Balancer Pool address
+          jQuery.ajax({url:"#{set_bp_address_balancer_pool_path(pool.id)}.js",
+                       data: {'bp_address': bPool.address},
+                       type: "PUT",
+                       error: function() { alert('Oh noes!'); }, 
+                       async: false});          
       }
       catch(err) {
           alert(err);

@@ -103,7 +103,7 @@ class BalancerPoolsController < ApplicationController
     end         
   end
 
-  def set_balancer_address
+  def set_bp_address
     @pool = BalancerPool.find(params[:id])
     
     @pool.update_attribute(:bp_address, params[:bp_address])
