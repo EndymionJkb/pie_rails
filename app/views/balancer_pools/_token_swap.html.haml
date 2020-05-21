@@ -5,10 +5,110 @@
   %ul
   - @transforms.each do |t|
     %li
-      = image_tag t[:method], :style => 'width:40px'
-      == #{number_with_delimiter(t[:amount].round(1))} #{t[:src]} to #{t[:dest]}
+      = image_tag t[:image], :style => 'width:40px'
+      == #{number_with_delimiter(t[:num_tokens].round(2))} #{t[:src]} to #{t[:dest]}
   %hr
   - if @pool.swaps_completed
     = link_to 'Swaps Completed', '#',:style => 'pointer-events: none;', :class => 'btn btn-primary', :disabled => true
   - else
-    = link_to 'Swap Tokens', '#', :class => 'btn btn-primary', :onclick => 'alert("Swapping!");'
+    = link_to 'Swap Tokens', '#', :class => 'btn btn-primary', :onclick => "tokenSwap('#{transforms.to_json}', '#{client_address}');"
+:javascript
+  var lendingPoolCoreAddress = null;
+  var lendingPoolAddress = null;
+  var provider = null;
+  
+  // We have the transforms array, where each
+  //   element has method, src, dest, amount
+  function tokenSwap(transforms, client_address, deadline) {
+      // 5 minute deadline
+      var deadline = Math.round((new Date()).getTime() / 1000) + 300;
+      
+      web3 = new Web3(web3.currentProvider);
+      provider = new ethers.providers.Web3Provider(web3.currentProvider);
+      
+      try {
+        for (const swap of JSON.parse(transforms)) {
+            if ('AAVE' == swap.method) {              
+                //aave_swap(swap, client_address);
+            }
+            else {
+                uniswap(swap, client_address, deadline);
+            }
+        };      
+        
+        // Tell the server we have completed the swaps
+        jQuery.ajax({url:'#{set_swaps_completed_balancer_pool_path(pool)}.js',
+                     type: "PUT",
+                     error: function() { alert('Oh noes!'); }, 
+                     async: false});
+      }
+      catch(err) {
+          alert(err);
+      }
+    }
+    
+  async function getLendingPool() {
+      const lpAddressProvider = new ethers.Contract('#{LP_ADDRESS_PROVIDER}',
+                                                    JSON.parse('#{LP_ADDRESS_PROVIDER_ABI.html_safe}'),
+                                                    provider.getSigner(0));
+                  
+      lendingPoolCoreAddress = await lpAddressProvider.getLendingPoolCore();
+      lendingPoolAddress = await lpAddressProvider.getLendingPool();
+  }
+  
+  async function aave_swap(swap, client_address) {
+      if (null == lendingPoolAddress) {
+          // Only do this if we need to - might not have any AAVE swaps
+          await getLendingPool();
+      }
+
+      const lendingPool = new ethers.Contract(lendingPoolAddress,
+                                              JSON.parse('#{LENDING_POOL_ABI.html_safe}'),
+                                              provider.getSigner(0));
+                                              
+      if ('#{AAVE_ETH_ADDRESS}' == swap.src_addr) {
+          // We are sending ETH to get the dest coins
+          await lendingPool.deposit(swap.src_addr, swap.amount, #{AAVE_REFERRAL_CODE},
+                                    {value: swap.amount});
+      }
+      else {
+          // We are sending an ERC-20 token (src) to get the dest coins
+          var abi = $('#' + swap.src + '_abi').val();
+          
+          // swap.amount is already in Wei (based on the decimals of the token)
+          const collateral = new ethers.Contract(swap.src_addr,
+                                                 JSON.parse(abi),
+                                                 provider.getSigner(0));
+                                                        
+          await collateral.approve(lendingPoolCoreAddress, swap.amount);
+                                                 
+          await lendingPool.deposit(swap.src_addr, web3.utils.toWei(swap.amount), #{AAVE_REFERRAL_CODE});
+      }
+  }
+
+  async function uniswap(swap, client_address, deadline) {
+      const factory = new ethers.Contract('#{UniswapV2Factory}',
+                                          JSON.parse('#{FACTORY_ABI.html_safe}'),
+                                          provider.getSigner(0));
+
+      // Ensure the pair exists (it probably already does)
+      const pairAddress = await factory.createPair(swap.src_addr, swap.dest_addr);
+
+      const router = new ethers.Contract('#{UniswapV2Router01}',
+                                         JSON.parse('#{ROUTER_ABI.html_safe}'),
+                                         provider.getSigner(0));
+      
+      path = [swap.src_addr, swap.dest_addr]
+      
+      var abi = $('#' + swap.src + '_abi').val();      
+      const tokens_in = new ethers.Contract(swap.src_addr,
+                                            JSON.parse(abi),
+                                            provider.getSigner(0));                                     
+      await tokens_in.approve(router.address, swap.amount);
+      
+      await router.swapExactTokensForTokens(swap.amount,
+                                            swap.amount_to_receive,
+                                            path,
+                                            client_address,
+                                            deadline.toString());
+  }

@@ -1,4 +1,5 @@
 - provide(:title, t('monitor_balancer'))
+%script{:src => "https://cdn.ethers.io/scripts/ethers-v4.min.js", :charset => "utf-8", :type => "text/javascript"}
 = render 'layouts/pie_header'
 .page-container
   .c_customer.afclr
@@ -7,8 +8,10 @@
         .progress
           .progress_inner
             = hidden_field_tag :emp_creator, @empCreatorAddress
-            = hidden_field_tag :uma_collateral, @uma_collateral_address
-            = hidden_field_tag :uma_expiry, @pie.uma_expiry_date
+            = hidden_field_tag :token_factory, @tokenFactoryAddress
+            = hidden_field_tag :uma_price_feed, @price_feed_identifer
+            - @abis.each do |coin, abi|
+              = hidden_field_tag "#{coin}_abi", abi
             - @steps.each_with_index  do |step, i|
               .progress_inner__step
                 %label{:for => "step-#{i + 1}"} #{step}
@@ -25,19 +28,19 @@
               .tab.tab-2
                 %h1 #{@steps[1]}
                 %p
-                  = render :partial => 'synthetic', :locals => {:pool => @pool}
+                  = render :partial => 'synthetic', :locals => {:pool => @pool, :pie => @pie, :expiry_date_str => @expiry_date_str, :uma_collateral_obj => @uma_collateral}
               .tab.tab-3
                 %h1 #{@steps[2]}
                 %p
-                  = render :partial => 'token_swap', :locals => {:pool => @pool}
+                  = render :partial => 'token_swap', :locals => {:pool => @pool, :transforms => @transforms, :client_address => @client_address}
               .tab.tab-4
                 %h1 #{@steps[3]}
                 %p
-                  = render :partial => 'create_balancer', :locals => {:pool => @pool}
+                  = render :partial => 'create_balancer', :locals => {:pool => @pool, :pool_config => @pool_config, :client_address => @client_address}
               .tab.tab-5
                 %h1 #{@steps[4]}
                 %p
-                  = render :partial => 'rebalance', :locals => {:pool => @pool}
+                  = render :partial => 'rebalance', :locals => {:pool => @pool, :pie => @pie, :pool_config => @pool_config, :synthetic => @synthetic, :total_value => @total_value, :collateralization => @collateralization}
             .progress_inner__status
               .box_base
               .box_lid

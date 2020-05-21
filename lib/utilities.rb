@@ -23,6 +23,12 @@ module Utilities
       hex_value += ch.ord.to_s(16)
     end
     
-    '0x' + hex_value
+    result = '0x' + hex_value
+    
+    result.ljust(66,'0')
+  end
+
+  def self.current_timestamp
+    Date.today.to_time.to_i
   end
 end

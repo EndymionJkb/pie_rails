@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_05_17_163055) do
+ActiveRecord::Schema.define(version: 2020_05_21_031259) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -23,6 +23,7 @@ ActiveRecord::Schema.define(version: 2020_05_17_163055) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.boolean "swaps_completed", default: false, null: false
+    t.boolean "finalized", default: false, null: false
     t.index ["pie_id"], name: "index_balancer_pools_on_pie_id"
   end
 

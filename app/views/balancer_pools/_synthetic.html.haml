@@ -1,37 +1,72 @@
-- if 0 == @pie.pct_equities
+- if 0 == pie.pct_equities
   %h4 Nothing to see here
   %p With no allocation to equities, you do not need a synthetic
 - else
-  %h4== Allocation: #{@pie.pct_equities}% Equities
+  %h4== Allocation: #{pie.pct_equities}% Equities
   %strong Collateral:
-  = @pie.uma_collateral
+  = pie.uma_collateral
   %br
   %strong Symbol:
-  == #{@pie.uma_token_symbol} (#{@pie.uma_token_name})
+  == #{pie.uma_token_symbol} (#{pie.uma_token_name})
   %br
   %strong Expiring:
-  = @expiry_date_str
+  = expiry_date_str
   %p== 
   %hr
   %ul.sublist
   %strong Constituents
-  - @pie.etfs.each do |etf|
+  - pie.etfs.each do |etf|
     %li= etf.display_name
-  - @pie.stocks.each do |stock|
+  - pie.stocks.each do |stock|
     %li= stock.display_name
 %hr
-- if !@pool.uma_address.nil?
-  = link_to 'Create Synthetic', '#', :title => 'Does this work?', :class => 'btn btn-primary', :onclick => "blockchain_call_uma();"
+- if !pool.uma_address.nil?
+  = link_to 'Create Synthetic', '#', :title => 'Does this work?', :class => 'btn btn-primary', :onclick => "create_synthetic();"
 - else
-  = link_to 'Synthetic Created', '#', :style => 'pointer-events: none;', :title => "Contract address: #{@pool.uma_address}", :class => 'btn btn-primary'
+  = link_to 'Synthetic Created', '#', :style => 'pointer-events: none;', :title => "Contract address: #{pool.uma_address}", :class => 'btn btn-primary'
   %br
   %br
-  %p== Contract address: #{@pool.uma_address}
+  %p== Contract address: #{pool.uma_address}
 :javascript
-  function blockchain_call_uma() {
-    var empCreator = $('#emp_creator').val();
-    var collateral = $('#uma_collateral').val();
-    var expiry = $('#uma_expiry').val();
-    
-    create_synthetic(empCreator, collateral, expiry);
+  function create_synthetic() {
+      // Get the address of the deployed creator contract (deployed in the uma_prep script)
+      var empCreatorAddress = $('#emp_creator').val();
+
+      // Get the address of the deployed token factory contract (deployed in the uma_prep script)
+      var tokenFactoryAddress = $('#token_factory').val();
+
+      // Get the price feed assigned to this pie - in Hex format
+      var priceFeed = $('#uma_price_feed').val();
+      
+      web3 = new Web3(web3.currentProvider);
+      provider = new ethers.providers.Web3Provider(web3.currentProvider);
+  
+      var empCreator = new ethers.Contract(empCreatorAddress,
+                                          JSON.parse('#{EMP_CREATOR_ABI.html_safe}'),
+                                          provider.getSigner(0));
+      
+      create_emp(empCreator, priceFeed, tokenFactoryAddress);
+  }
+  
+  async function create_emp(empCreator, priceFeed, tokenFactoryAddress) {
+      const params = { expirationTimestamp: "#{pie.uma_expiry_date}",
+                       collateralAddress: "#{uma_collateral_obj.address}",
+                       priceFeedIdentifier: priceFeed,
+                       syntheticName: "#{pie.uma_token_name}",
+                       syntheticSymbol: "#{pie.uma_token_symbol}",
+                       collateralRequirement: {'rawValue': web3.utils.toWei("#{MIN_COLLATERALIZATION.to_s}")},
+                       disputeBondPct: {'rawValue': web3.utils.toWei("#{DISPUTE_BOND_PCT}")},
+                       sponsorDisputeRewardPct: {'rawValue': web3.utils.toWei("#{SPONSOR_DISPUTE_REWARD_PCT}")},
+                       disputerDisputeRewardPct: {'rawValue': web3.utils.toWei("#{DISPUTER_DISPUTE_REWARD_PCT}")},
+                       minSponsorTokens: {'rawValue': web3.utils.toWei("#{MIN_SPONSOR_TOKENS}")}};
+                       
+      const txResult = await empCreator.createExpiringMultiParty(params);
+      const empAddress = txResult.logs[0].args.expiringMultiPartyAddress;
+            
+      // Tell the server the new emp address
+      jQuery.ajax({url:'#{set_uma_address_balancer_pool_path(pool)}.js',
+                   data: {'uma_address': emp.address},
+                   type: "PUT",
+                   error: function() { alert('Oh noes!'); }, 
+                   async: false});
   }

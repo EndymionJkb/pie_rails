@@ -1,49 +1,58 @@
-- if @pool.bp_address.nil? and @pool.uma_address.nil?
+- if pool.bp_address.nil? and pool.uma_address.nil?
   %h4 Nothing to see here
   %p You have not created a Balancer yet!
 - else
   .row
-    .col-md-7
+    .col-md-8
       %br
-      - if @pool.uma_address.nil?
+      - if pool.uma_address.nil?
         %p No Synthetic
       - else
         %p== Collateralization:
         .progress.progress-bar-animated{:style => 'margin-top:10px'}
-          .progress-bar.progress-bar-striped{:class => "#{@progress_class}", :style => "width:100%", :role => "progressbar"}
-            == #{@collateralization.round}%
+          .progress-bar.progress-bar-striped#collateral_progress{:class => "#{@progress_class}", :style => "width:100%", :role => "progressbar"}
+            #collateralization
+              == #{collateralization.round}%
         %br 
         %table.table.striped-table
-          %caption== UMA Synthetic (#{@pie.uma_token_name}): #{number_to_currency(@synthetic[:investment])}
+          %caption== UMA Synthetic (#{pie.uma_token_name}): #{number_to_currency(synthetic[:investment])}
           %tr
             %th Equity
             %th Basis
             %th Shares
             %th Price
             %th Performance
-          - @synthetic[:slices].keys.each do |key|
-            - data = @synthetic[:slices][key]
+          - synthetic[:slices].keys.each do |key|
+            - data = synthetic[:slices][key]
             %tr
               %td= key
               %td= number_to_currency(data[:basis].round(2))
-              %td= number_with_delimiter(data[:shares].round)
+              %td= number_with_delimiter(data[:shares].round(2))
               %td= number_to_currency(data[:price].round(2))
               %td{:style => "color:#{data[:performance] < 0 ? 'red' : 'green'}"}== #{data[:performance].round(2)}%
+          %tr
+            %td Adjustments
+            %td
+            %td
+            %td
+            %td{:id => 'adjustments'}= number_to_currency(synthetic[:net_collateral_adjustment])
           %tr
             %td Total
             %td
             %td
             %td
-            %td= number_to_currency(@total_value.round(2))
+            %td{:id => 'total_value'}= number_to_currency(total_value.round(2))
         = label_tag :amount
         = number_field_tag :amount, nil, :min => 0
-        %br= link_to 'Deposit Collateral', '#', :class => 'btn btn-primary', :onclick => 'alert("Deposit!");'
-        %br= link_to 'Withdraw Collateral', '#', :class => 'btn btn-primary', :onclick => 'alert("Withdraw!");'
-        %br= link_to 'Redeem Tokens', '#', :title => 'After expiration', :class => 'btn btn-primary', :onclick => 'alert("Redeem!");', :style => 'pointer-events: none;'
+        - deposit_style = pie.uma_expired? ? 'pointer-events: none;' : ''
+        - withdraw_style = pie.uma_expired? || pie.insufficient_collateral? ? 'pointer-events: none;' : ''
+        %br= link_to 'Deposit Collateral', '#', :style => deposit_style, :class => 'btn btn-primary', :onclick => "deposit_collateral(#{pie.id}); return false;"
+        %br= link_to 'Withdraw Collateral', '#', :style => withdraw_style, :class => 'btn btn-primary', :onclick => "withdraw_collateral(#{pie.id}); return false;"
+        %br= link_to 'Redeem Tokens', '#', :title => 'After expiration', :class => 'btn btn-primary', :onclick => "redeem_tokens(#{pie.id}); return false;"
     .vl{:style => 'float:left'}
-    .col-md-4
+    .col-md-3
       %div{:style => 'float:right, display:inline-block'}
-        - if @pool.bp_address.nil?
+        - if pool.bp_address.nil?
           %p You have not created a Balancer yet
         - else
           %table.table.striped-table
@@ -52,7 +61,7 @@
               %th %
               %th Coin
               %th Amount
-            - @pool_config.each do |pc|
+            - pool_config.each do |pc|
               %tr
                 %td{:title => "Denorm: #{pc[:denorm]}"}
                   = number_field_tag "weight_#{pc[:coin]}", pc[:weight], :min => 2, :max => 98, :class => 'short_input balancer_input', :onchange => "update_weights();"
@@ -60,5 +69,10 @@
                 %td= number_with_delimiter(pc[:amount].round(2))
           #balancer_total
             Total: 100%
+          - link_style = pool.finalized ? 'pointer-events: none;' : ''
           %hr
-          = link_to 'Adjust Weights', '#', :class => 'btn btn-primary', :onclick => 'alert("Adjusting!");'
+          = link_to 'Adjust Weights', '#', :id => 'adjust_weights', :style => link_style, :class => 'btn btn-primary', :onclick => 'alert("Adjusting!");'
+          %br
+          %br= link_to 'Finalize', '#', :id => 'finalize', :style => link_style, :class => 'btn btn-primary', :onclick => "finalize_balancer(#{pool.id}); return false;"
+:javascript
+  

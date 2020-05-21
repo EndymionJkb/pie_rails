@@ -10,6 +10,7 @@
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
 #  swaps_completed :boolean          default(FALSE), not null
+#  finalized       :boolean          default(FALSE), not null
 #
 class BalancerPool < ApplicationRecord
   belongs_to :pie
@@ -20,7 +21,7 @@ class BalancerPool < ApplicationRecord
   INITIAL_INVESTMENT = 5000
   
   validates_length_of :uma_address, :bp_address, :is => 42, :allow_nil => true
-  validates_inclusion_of :swaps_completed, :in => [true, false]
+  validates_inclusion_of :swaps_completed, :finalized, :in => [true, false]
   
   def balancer_url
     "https://pools.balancer.exchange/#/pool/#{self.bp_address}"

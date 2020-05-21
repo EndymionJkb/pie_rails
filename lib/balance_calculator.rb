@@ -103,8 +103,9 @@ class BalanceCalculator
     stable_out = @pie.stable_coin_needs
     crypto_out = @pie.crypto_needs
     ptokens_out = @pie.ptoken_needs
+    # Note that the uma collateral coin will have an amount that is multiplied by MIN_COLLATERALIZATION
     aave_out = @pie.aave_needs
-
+    
     @disposition, @errors, @ptoken_errors, @encoding = calculate_internal(stable_in, crypto_in, ptokens_in, aave_in,
                                                                           stable_out, crypto_out, ptokens_out, aave_out)    
     
@@ -250,7 +251,8 @@ class BalanceCalculator
                                            :src_coin => src_coin.address,
                                            :dest_coin => dest_coin.address,
                                            :num_tokens => amount_needed.round(2),
-                                           :amount => src_coin.to_wei(amount_needed) })
+                                           :amount => src_coin.to_wei(amount_needed),
+                                           :amount_to_receive => src_coin.to_wei(amount_needed)})
             else
               try_eth = true
             end
@@ -268,7 +270,8 @@ class BalanceCalculator
                                            :src_coin => src_coin.address,
                                            :dest_coin => dest_coin.address,
                                            :num_tokens => amount_needed.round(2),
-                                           :amount => src_coin.to_wei(amount_needed) })
+                                           :amount => src_coin.to_wei(amount_needed),
+                                           :amount_to_receive => src_coin.to_wei(amount_needed) })
             else
               try_eth = true
             end
@@ -297,7 +300,8 @@ class BalanceCalculator
                                            :src_coin => src_coin.address,
                                            :dest_coin => dest_coin.address,
                                            :num_tokens => amount_needed.round(2),
-                                           :amount => src_coin.to_wei(amount_needed) })
+                                           :amount => src_coin.to_wei(amount_needed),
+                                           :amount_to_receive => src_coin.to_wei(amount_needed) })
               crypto_in['ETH'] -= amount_needed
             else
               @errors.push("Short #{amount_needed.round(2)} ETH to swap for #{original_amount.round(2)} of #{coin} in AAVE allocation (or collateral)")
@@ -312,6 +316,52 @@ class BalanceCalculator
       
       address_shortfalls(shortfall_amounts, stable_in, 'Crypto') unless shortfall_amounts.empty?
     end    
+    
+    # Post-process to address issue with Balancer. You can have ETH in the crypto section - but Balancer only accepts ERC-20 tokens!
+    # So we need to convert any ETH to aETH. Easiest solution, rather than touch the complex logic here, is to let it do its thing, then
+    #   look for the special ETH address in the pool. If we find it, add a swap of ETH to aETH, and change to pool entry address from
+    #   the funny one to the real aETH address
+    # 
+    @total_pct = 0
+    @encoding[:pool].each do |slice|
+      @total_pct += slice[:weight]
+      
+      if AAVE_ETH_ADDRESS == slice[:coin]
+        # This is the special case - change coin to aETH
+        aETH_address = CoinInfo.find_by_coin('aETH').address
+        slice[:coin] = aETH_address
+
+        # Now add a swap        
+        @encoding[:transforms].push({:method => 'AAVE',
+                                     :src_coin => AAVE_ETH_ADDRESS,
+                                     :dest_coin => aETH_address,
+                                     :num_tokens => slice[:num_tokens],
+                                     :amount => slice[:amount],
+                                     :amount_to_receive => slice[:amount]})
+      end
+    end
+    
+    # Second post-process - the percentage in the pool for the uma_collateral coin will be too high, since the amount is
+    #   multiplied by the MIN_COLLATERALIZATION. As a further twist, it is possible to have an aToken as a crypto AND also as the
+    #   uma_collateral. So the "need" for that coin would be the crypto + 1.75*equities.
+    #
+    # The logic to track this through would add a lot of complexity. So, since this is the only thing that could cause the percentages
+    #   not to be 100 - and it's a display problem - I'm going to just track the percentages and, if they're > 100, find the uma
+    #   collateral token and lower it such that the total is 100. As a sanity check, I will make sure there *is* an uma collateral token,
+    #   and an equity percentage.
+    #
+    unless 1 == @total_pct or 0 == @pie.pct_equities or @pie.uma_collateral.nil?
+      adjustment = @total_pct - 1
+      
+      collateral = CoinInfo.find_by_coin(@pie.uma_collateral)
+      @encoding[:pool].each do |slice|
+        if collateral.address == slice[:coin]
+          slice[:weight] -= adjustment
+          
+          break
+        end
+      end
+    end
     
     return @disposition, @errors, @ptoken_errors, @encoding
   end
@@ -773,12 +823,13 @@ private
             @disposition[coin_out].push("Uniswap #{short[:short].round(2)} #{coin_in} for #{coin_out}")
             src_coin = CoinInfo.find_by_coin(coin_in)
             dest_coin = CoinInfo.find_by_coin(coin_out)
-            # We are swapping the *amount* of coins, not the dollar value, so use raw_short
             @encoding[:transforms].push({:method => 'Uniswap', 
                                          :src_coin => src_coin.address,
                                          :dest_coin => dest_coin.address,
                                          :num_tokens => short[:short],
-                                         :amount => src_coin.to_wei(short[:short]) })
+                                         :amount => src_coin.to_wei(short[:short]),
+                                         # Adjust amount to receive for the tolerance
+                                         :amount_to_receive => coin_data.to_wei(short[:raw_short] * (1 - SWAP_SLIPPAGE))})
             # This shortfall has been met, so stop
             break
           elsif balance.round > 0
@@ -790,11 +841,15 @@ private
             @disposition[coin_out].push("Uniswap #{balance} #{coin_in} for #{coin_out}")
             src_coin = CoinInfo.find_by_coin(coin_in)
             dest_coin = CoinInfo.find_by_coin(coin_out)
+            # We will get $amount_src_coin_left worth of dest, so the amount is that divided by price
+            amount_to_receive = amount_src_coin_left / PriceHistory.latest_price(dest_coin.coin) * (1 - SWAP_SLIPPAGE)
+            
             @encoding[:transforms].push({:method => 'Uniswap', 
                                          :src_coin => src_coin.address,
                                          :dest_coin => dest_coin.address,
                                          :num_tokens => amount_src_coin_left,
-                                         :amount => src_coin.to_wei(amount_src_coin_left) })
+                                         :amount => src_coin.to_wei(amount_src_coin_left),
+                                         :amount_to_receive => dest_coin.to_wei(amount_to_receive) })
           end
         end
       end

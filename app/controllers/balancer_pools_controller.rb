@@ -91,7 +91,40 @@ class BalancerPoolsController < ApplicationController
                  
     redirect_to edit_balancer_pool_path(@pool)
   end
+  
+  def set_uma_address
+    @pool = BalancerPool.find(params[:id])
     
+    @pool.update_attribute(:uma_address, params[:uma_address])
+    
+    respond_to do |format|       
+      format.js { head :ok }
+      format.html { redirect_to root_path }     
+    end         
+  end
+
+  def set_balancer_address
+    @pool = BalancerPool.find(params[:id])
+    
+    @pool.update_attribute(:bp_address, params[:bp_address])
+    
+    respond_to do |format|       
+      format.js { head :ok }
+      format.html { redirect_to root_path }     
+    end         
+  end
+
+  def set_swaps_completed
+    @pool = BalancerPool.find(params[:id])
+    
+    @pool.update_attribute(:swaps_completed, true)
+    
+    respond_to do |format|       
+      format.js { head :ok }
+      format.html { redirect_to root_path }     
+    end         
+  end
+  
   def update_balances
     @pool = BalancerPool.find(params[:id])
     @alloc = YAML::load(@pool.allocation)
@@ -171,18 +204,44 @@ class BalancerPoolsController < ApplicationController
     
     # Read the address of the ExpiringMultiPartyCreator (from the uma_prep script)
     @empCreatorAddress = IO.read('db/data/ExpiringMultiPartyCreator.txt')
+    @tokenFactoryAddress = IO.read('db/data/TokenFactory.txt')
+
     @expiry_date_str = UmaExpiryDate.find_by_unix(@pie.uma_expiry_date).date_str
-    @uma_collateral_address = CoinInfo.find_by_coin(@pie.uma_collateral).address rescue nil
+    @uma_collateral = CoinInfo.find_by_coin(@pie.uma_collateral)
+
+    if @pie.price_identifier.nil?
+      # need to assign it
+      pi = PriceIdentifier.where(:pie_id => nil).first
+      if pi.nil?
+        raise 'No available price feed identifiers!'
+      else
+        @pie.update_attribute(:price_identifier, pi.id)
+      end
+    end
+
+    # Need to convert to Hex for contract
+    @price_feed_identifer = Utilities.utf8ToHex(@pie.price_identifier.whitelisted)
     
     @data = YAML::load(@pool.allocation)
+    @client_address = @data[:address]
+    @abis = Hash.new
+    
     # Lots of processing to get the swaps, so do that in the controller
-    if @data.has_key?(:encoding) and @data[:encoding].has_key?(:transforms)
+    if @data[:encoding] and @data[:encoding][:transforms]
       @transforms = []
       @data[:encoding][:transforms].each do |t|
-        tx = {:method => 'AAVE' == t[:method] ? 'aave.svg' : 'uniswap.png'}
-        tx[:src] = CoinInfo.find_by_address(t[:src_coin]).coin
-        tx[:dest] = CoinInfo.find_by_address(t[:dest_coin]).coin
-        tx[:amount] = t[:num_tokens]
+        tx = {:method => t[:method], :image => 'AAVE' == t[:method] ? 'aave.svg' : 'uniswap.png'}
+        src_coin = CoinInfo.find_by_address(t[:src_coin])
+        dest_coin = CoinInfo.find_by_address(t[:dest_coin])
+        tx[:src] = src_coin.coin
+        tx[:src_addr] = src_coin.address
+        # Write as hidden fields in the UI
+        @abis[src_coin.coin] = src_coin.abi
+        tx[:dest] = dest_coin.coin
+        tx[:dest_addr] = dest_coin.address
+        tx[:num_tokens] = t[:num_tokens]
+        tx[:amount] = t[:amount]
+        tx[:amount_to_receive] = t[:amount_to_receive]
         
         @transforms.push(tx)
       end
@@ -191,28 +250,33 @@ class BalancerPoolsController < ApplicationController
     end
     
     @pool_config = []
-    @data[:encoding][:pool].each do |p|
-      pc = Hash.new
-      pc[:coin] = CoinInfo.find_by_address(p[:coin]).coin
-      pc[:amount] = p[:num_tokens]
-      pc[:weight] = (p[:weight] * 100.0).round(1)
-      pc[:denorm] = (p[:weight] * 50).round(1)
-      
-      @pool_config.push(pc)
+    if @data[:encoding]
+      @data[:encoding][:pool].each do |p|
+        pc = Hash.new
+        info = CoinInfo.find_by_address(p[:coin])
+        pc[:coin] = info.coin
+        @abis[info.coin] = info.abi
+        pc[:coin_addr] = info.address
+        pc[:amount] = p[:num_tokens]
+        pc[:amount_wei] = p[:amount]
+        pc[:weight] = (p[:weight] * 100.0).round(1)
+        pc[:denorm] = (p[:weight] * 50).round(2)
+        
+        @pool_config.push(pc)
+      end
     end
     
     if @pool.uma_address.nil?
       @synthetic = nil
     else
       syn_data = YAML::load(@pie.uma_snapshot)
-      @synthetic = {:investment => syn_data[:investment], :slices => Hash.new}
-      @total_value = 0
+      @synthetic = {:investment => syn_data[:investment], :slices => Hash.new,
+                    :net_collateral_adjustment => syn_data[:net_collateral_adjustment]}
       
       @pie.etfs.each do |etf|
         data = syn_data[:slices][etf.ticker]
         current_price = etf.current_price
         performance = (current_price - data[:price])/data[:price] * 100
-        @total_value += data[:shares] * current_price
         
         @synthetic[:slices][etf.ticker] = {:basis => data[:price],
                                            :shares => data[:shares],
@@ -224,7 +288,6 @@ class BalancerPoolsController < ApplicationController
         data = syn_data[:slices][stock.cca_id]
         current_price = stock.current_price
         performance = (current_price - data[:price])/data[:price] * 100
-        @total_value += data[:shares] * current_price
         
         @synthetic[:slices][stock.company_name] = {:basis => data[:price],
                                                    :shares => data[:shares],
@@ -232,9 +295,7 @@ class BalancerPoolsController < ApplicationController
                                                    :performance => performance}
       end
       
-      @collateralization = @total_value / syn_data[:investment] * 100
-      
-      @progress_class = get_progress_class(@collateralization)
+      @collateralization, @progress_class, @total_value = @pie.compute_uma_collateralization
     end
   end
   
@@ -261,11 +322,12 @@ class BalancerPoolsController < ApplicationController
           total_value += data[:shares] * current_price
         end
         
-        collateralization = total_value / syn_data[:investment] * 100
+        snap = YAML::load(pie.uma_snapshot)
+        collateralization, progress_class = pie.compute_uma_collateralization
         
         current_syn[:current_value] = total_value
         current_syn[:collateralization] = collateralization
-        current_syn[:progress_class] = get_progress_class(collateralization)
+        current_syn[:progress_class] = progress_class
         current_syn[:price_identifier] = pie.price_identifier.whitelisted
         current_syn[:uma_address] = pool.uma_address
         current_syn[:token_symbol] = pie.uma_token_symbol
@@ -310,17 +372,5 @@ private
     unless @pool.user == current_user
       redirect_to root_path, :alert => 'Wrong User'
     end
-  end
-  
-  def get_progress_class(collateralization)
-    if collateralization < Pie::UMA_COLLATERALIZATION * 100
-      progress_class = 'bg-danger'
-    elsif collateralization > (Pie::UMA_COLLATERALIZATION + 0.2) * 100
-      progress_class = 'bg-success'
-    else
-      progress_class = 'bg-warning'
-    end
-    
-    progress_class    
-  end
+  end  
 end

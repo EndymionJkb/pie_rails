@@ -13,6 +13,9 @@ Rails.application.routes.draw do
       get 'edit_allocation'
       put 'update_allocation'
       put 'copy'
+      put 'deposit_collateral'
+      put 'withdraw_collateral'
+      put 'redeem_tokens'
     end
     
     collection do
@@ -23,7 +26,12 @@ Rails.application.routes.draw do
 
   resources :graphs, :only => [:create, :show]
   resources :balancer_pools, :only => [:show, :edit, :update, :create, :index] do
-    put 'update_balances', :on => :member
+    member do
+      put 'update_balances'
+      put 'set_uma_address'
+      put 'set_bp_address'
+      put 'set_swaps_completed'
+    end
   end
     
   # Don't want to update these in the pie form without submitting

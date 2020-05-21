@@ -185,13 +185,83 @@ class PiesController < ApplicationController
                      
     redirect_to edit_py_path(@pie), :notice => "Copied #{@src.name}"
   end
-  
-  def synthetics_index
+
+  def deposit_collateral
+    @pie = Pie.find(params[:id])
     
+    snap = YAML::load(@pie.uma_snapshot)
+    
+    snap[:net_collateral_adjustment] += params[:amount].to_i
+    @pie.update_attribute(:uma_snapshot, YAML::dump(snap))
+    
+    @collateralization, @progress_class, @total_value = @pie.compute_uma_collateralization
+    
+    respond_to do |format|       
+      format.js do
+         render :json => {:collateralization => @collateralization,
+                          :progress_class => @progress_class,
+                          :adjustments => snap[:net_collateral_adjustment],
+                          :total_value => @total_value}
+      end
+      format.html { redirect_to root_path }     
+    end             
+  end
+  
+  def withdraw_collateral
+    @pie = Pie.find(params[:id])
+    
+    snap = YAML::load(@pie.uma_snapshot)
+
+    # They can't withdraw so much that the collateralization falls below the minimum!     
+    snap[:net_collateral_adjustment] -= params[:amount].to_i    
+    @collateralization, @progress_class, @total_value = @pie.compute_uma_collateralization(snap[:net_collateral_adjustment])
+    
+    if @collateralization >= MIN_COLLATERALIZATION * 100
+      @pie.update_attribute(:uma_snapshot, YAML::dump(snap))
+    else
+      raise 'You cannot withdraw so much that the collateralization falls below the minimum!'
+    end
+    
+    respond_to do |format|       
+      format.js do
+         render :json => {:collateralization => @collateralization,
+                          :progress_class => @progress_class,
+                          :adjustments => snap[:net_collateral_adjustment],
+                          :total_value => @total_value}
+      end
+      format.html { redirect_to root_path }     
+    end             
+  end
+  
+  # For a $500 investment, at a collateralization of 1.75, the intial deposit would be 875
+  # They would get 500 synthetic tokens for 875 Dai, for instance
+  # If they redeem 200 tokens, they should get back 200*1.75 = 350
+  # This only gets called if the redemption succeeds
+  def redeem_tokens
+    @pie = Pie.find(params[:id])
+    
+    snap = YAML::load(@pie.uma_snapshot)
+    
+    snap[:net_collateral_adjustment] += params[:amount].to_i * MIN_COLLATERALIZATION
+    @pie.update_attribute(:uma_snapshot, YAML::dump(snap))
+    
+    @collateralization, @progress_class, @total_value = @pie.compute_uma_collateralization
+    
+    respond_to do |format|       
+      format.js do
+         render :json => {:collateralization => @collateralization,
+                          :progress_class => @progress_class,
+                          :adjustments => snap[:net_collateral_adjustment],
+                          :total_value => @total_value}
+      end
+      format.html { redirect_to root_path }     
+    end             
+  end 
+  
+  def synthetics_index    
   end
   
   def balancer_index
-    
   end
     
 private

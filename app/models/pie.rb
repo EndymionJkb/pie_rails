@@ -28,9 +28,7 @@ class Pie < ApplicationRecord
   DEFAULT_PCT_EQUITIES = 25
   
   MAX_EQUITIES = 8
-  
-  UMA_COLLATERALIZATION = 1.75
-  
+    
   has_one :crypto
   has_one :stable_coin
   has_one :balancer_pool
@@ -130,7 +128,10 @@ class Pie < ApplicationRecord
     
     # If there are equities, and the collateral is an AAVE coin, add that in as well
     if self.pct_equities > 0 and Setting::AAVE_COLLATERAL.include?(self.uma_collateral)
-      needs[self.uma_collateral] = self.pct_equities.to_f / 100 * UMA_COLLATERALIZATION
+      # Allow for having a crypto that is the same coin as the uma_collateral!
+      needs[self.uma_collateral] = 0 unless needs.has_key?(self.uma_collateral)
+      
+      needs[self.uma_collateral] += self.pct_equities.to_f / 100 * MIN_COLLATERALIZATION
     end
     
     needs    
@@ -222,6 +223,36 @@ class Pie < ApplicationRecord
     end
   end
   
+  def uma_expired?
+    if self.uma_expiry_date.blank?
+      false
+    else
+      Utilities.current_timestamp > self.uma_expiry_date.to_i
+    end    
+  end
+
+  # If the argument is given, the adjustment hasn't been made yet (it's a "what if?"; e.g., prior to withdrawal)
+  def compute_uma_collateralization(adjustment_override = nil)
+    snap = YAML::load(self.uma_snapshot)    
+    @total_value = 0
+    snap[:slices].keys.each do |key|
+      @total_value += snap[:slices][key][:price].to_f * snap[:slices][key][:shares].to_f
+    end
+    
+    adjustment = adjustment_override.nil? ? snap[:net_collateral_adjustment].to_i : adjustment_override
+    
+    @collateralization = (@total_value + adjustment) / snap[:investment].to_i * 100    
+    @progress_class = get_progress_class(@collateralization)
+    
+    return @collateralization.round(1), @progress_class, (@total_value + adjustment).round(2)
+  end
+  
+  def insufficient_collateral?
+    @collateralization, @progress_class, @total_value = self.compute_uma_collateralization
+    
+    @collateralization < MIN_COLLATERALIZATION * 100
+  end
+  
 private
   def build_primary_series
     # Primary series is Gold, Crypto, Cash, Equities
@@ -272,4 +303,17 @@ private
     
     series
   end    
+
+  
+  def get_progress_class(collateralization)
+    if collateralization < MIN_COLLATERALIZATION * 100
+      progress_class = 'bg-danger'
+    elsif collateralization > (MIN_COLLATERALIZATION + 0.2) * 100
+      progress_class = 'bg-success'
+    else
+      progress_class = 'bg-warning'
+    end
+    
+    progress_class    
+  end
 end

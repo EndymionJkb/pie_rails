@@ -10,6 +10,7 @@
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
 #  swaps_completed :boolean          default(FALSE), not null
+#  finalized       :boolean          default(FALSE), not null
 #
 require 'rails_helper'
 
@@ -25,6 +26,7 @@ RSpec.describe BalancerPool, type: :model do
     expect(pool).to respond_to(:allocation)
     expect(pool).to respond_to(:balancer_url)
     expect(pool).to respond_to(:swaps_completed)
+    expect(pool).to respond_to(:finalized)
   end
   
   it { should be_valid }
@@ -45,6 +47,12 @@ RSpec.describe BalancerPool, type: :model do
   
   describe "Missing swaps_completed" do
     before { pool.swaps_completed = nil }
+    
+    it { should_not be_valid }
+  end
+
+  describe "Missing finalized" do
+    before { pool.finalized = nil }
     
     it { should_not be_valid }
   end
