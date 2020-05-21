@@ -12,8 +12,6 @@
 /tmp/*
 !/log/.keep
 !/tmp/.keep
-db/data/ExpiringMultiPartyCreator.txt
-db/data/TokenFactory.txt
 
 # Ignore uploaded files in development
 /storage/*
