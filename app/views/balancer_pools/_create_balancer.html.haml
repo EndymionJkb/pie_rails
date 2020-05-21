@@ -48,7 +48,7 @@
               const slice = new ethers.Contract(bind.coin_addr,
                                                 JSON.parse(abi),
                                                 provider.getSigner(0));                                                            
-              await slice.approve(bpAddress, bind.amount_wei);
+              await slice.approve(bPool, bind.amount_wei);
               
               await bPool.bind(bind.coin_addr, bind.amount_wei, bind.denorm);
           };
