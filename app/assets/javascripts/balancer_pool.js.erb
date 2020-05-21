@@ -25,7 +25,7 @@ async function getBalances(ethereum_address) {
     const ethBalance = web3.utils.fromWei(rawBalance, 'ether');
 	balanceData['ETH'] = ethBalance;
 
-	<% CoinInfo.used.each do |coin| %>
+	<% CoinInfo.all.each do |coin| %>
 	    address = '<%= coin.address %>';
 		abi = '<%= coin.abi %>';
 		contract = new ethers.Contract(address,
