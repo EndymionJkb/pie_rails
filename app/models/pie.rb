@@ -255,7 +255,8 @@ class Pie < ApplicationRecord
   
   def initialize_uma_snapshot(investment)
     total_investment = investment * self.pct_equities.to_f / 100.0
-    snapshot = {:investment => total_investment, :net_collateral_adjustment => 0, :slices => Hash.new}
+    extra_collateral = total_investment * 0.75
+    snapshot = {:investment => total_investment, :net_collateral_adjustment => extra_collateral, :slices => Hash.new}
     per_slice = total_investment / (stocks.count + etfs.count)
     
     etfs.each do |etf|
