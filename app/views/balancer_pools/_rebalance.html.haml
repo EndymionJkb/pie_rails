@@ -52,8 +52,10 @@
         - if pool.pending_withdrawal.nil?
           %br= link_to 'Request Withdrawal', '#', :style => withdraw_style, :class => 'btn btn-primary', :onclick => "request_withdrawal(#{pool.id}, '#{pool.uma_address}'); return false;"
         - else
-          - ready_style = Time.now > pool.withdrawal_available ? '' : 'pointer-events: none;'
-          %br= link_to "Withdraw Collateral (#{pool.pending_withdrawal})", '#', :style => ready_style, :class => 'btn btn-primary', :onclick => "withdraw_collateral(#{pie.id}, '#{pool.uma_address}'); window.location.reload(); return false;"          
+          - if Time.now > pool.withdrawal_available
+            %br= link_to "Withdraw Collateral (#{pool.pending_withdrawal})", '#', :class => 'btn btn-primary', :onclick => "withdraw_collateral(#{pie.id}, '#{pool.uma_address}'); window.location.reload(); return false;"          
+          - else
+            %br= link_to "Cancel Withdrawal (#{pool.pending_withdrawal})", '#', :class => 'btn btn-primary', :onclick => "cancel_withdrawal(#{pool.id}, '#{pool.uma_address}'); window.location.reload(); return false;"          
         %br= link_to 'Redeem Tokens', '#', :title => 'After expiration', :class => 'btn btn-primary', :onclick => "redeem_tokens(#{pie.id}, '#{pool.uma_address}'); return false;"
     .vl{:style => 'float:left'}
     .col-md-3

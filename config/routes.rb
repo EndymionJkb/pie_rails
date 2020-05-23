@@ -35,6 +35,7 @@ Rails.application.routes.draw do
       put 'calculate_rebalance'
       put 'confirm_rebalance'
       put 'request_withdrawal'
+      put 'cancel_withdrawal'
     end
   end
     

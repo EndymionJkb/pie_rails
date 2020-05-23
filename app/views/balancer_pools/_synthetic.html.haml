@@ -32,23 +32,20 @@
       // Get the address of the deployed creator contract (deployed in the uma_prep script)
       var empCreatorAddress = $('#emp_creator').val();
 
-      // Get the address of the deployed token factory contract (deployed in the uma_prep script)
-      var tokenFactoryAddress = $('#token_factory').val();
-
       // Get the price feed assigned to this pie - in Hex format
       var priceFeed = $('#uma_price_feed').val();
       
       web3 = new Web3(web3.currentProvider);
       provider = new ethers.providers.Web3Provider(web3.currentProvider);
   
-      var empCreator = new ethers.Contract(empCreatorAddress,
-                                          JSON.parse('#{EMP_CREATOR_ABI.html_safe}'),
-                                          provider.getSigner(0));
+      const empCreator = new ethers.Contract(empCreatorAddress,
+                                             JSON.parse('#{EMP_CREATOR_ABI.html_safe}'),
+                                             provider.getSigner(0));
       
-      create_emp(empCreator, priceFeed, tokenFactoryAddress);
+      create_emp(empCreator, priceFeed);
   }
   
-  async function create_emp(empCreator, priceFeed, tokenFactoryAddress) {
+  async function create_emp(empCreator, priceFeed) {
       const params = { expirationTimestamp: "#{pie.uma_expiry_date}",
                        collateralAddress: "#{uma_collateral[:address]}",
                        priceFeedIdentifier: priceFeed,
@@ -65,9 +62,18 @@
         const empAddress = txResult.logs[0].args.expiringMultiPartyAddress;
         
         // Now get the ExpiringMultiParty contract we just deployed
-        var emp = new ethers.Contract(empAddress,
-                                      JSON.parse('#{EMP_ABI.html_safe}'),
-                                      provider.getSigner(0));
+        const emp = new ethers.Contract(empAddress,
+                                        JSON.parse('#{EMP_ABI.html_safe}'),
+                                        provider.getSigner(0));
+        
+        // Approve collateral
+        var abi = $('#' + "#{uma_collateral[:coin]}_abi").val();
+        
+        const spend = new ethers.Contract("#{uma_collateral[:address]}",
+                                          JSON.parse(abi),
+                                          provider.getSigner(0));
+                                          
+        await spend.approve(empAddress, web3.utils.toWei("#{uma_collateral[:collateral_amount]}"));
         
         // And create the position
         await emp.create({rawValue: web3.utils.toWei("#{uma_collateral[:collateral_amount]}")},

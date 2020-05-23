@@ -206,7 +206,6 @@ class BalancerPoolsController < ApplicationController
     
     # Read the address of the ExpiringMultiPartyCreator (from the uma_prep script)
     @empCreatorAddress = IO.read('db/data/ExpiringMultiPartyCreator.txt')
-    @tokenFactoryAddress = IO.read('db/data/TokenFactory.txt')
 
     @expiry_date_str = UmaExpiryDate.find_by_unix(@pie.uma_expiry_date).date_str
     
@@ -231,6 +230,7 @@ class BalancerPoolsController < ApplicationController
     base_amount = @data[:investment].to_f * @pie.pct_equities / 100.0
     
     @uma_collateral = {:address => collateral_coin.address,
+                       :coin => collateral_coin.coin,
                        :synthetic_amount => base_amount,
                        :collateral_amount => base_amount * MIN_COLLATERALIZATION}
     
@@ -517,7 +517,18 @@ class BalancerPoolsController < ApplicationController
       format.html { redirect_to root_path }     
     end         
   end
-  
+
+  def cancel_withdrawal
+    pool = BalancerPool.find(params[:id])
+    
+    pool.update_attributes(:pending_withdrawal => nil, :withdrawal_available => nil)
+    
+    respond_to do |format|       
+      format.js { head :ok }
+      format.html { redirect_to root_path }     
+    end         
+  end
+    
 private
   def sanity_check
     unless @pool.user == current_user

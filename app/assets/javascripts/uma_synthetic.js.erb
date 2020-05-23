@@ -62,6 +62,32 @@ async function request_withdrawal(pool, uma_address) {
 	}
 }
 
+function cancel_withdrawal(pool, uma_address) {
+	try {
+		uma_cancel_withdrawal(uma_address);
+			
+		jQuery.ajax({url: '/balancer_pools/'+ pool + '/cancel_withdrawal.js',
+		             type: "PUT",
+		             success: function(data) { alert("Withdrawal canceled successfully"); window.location.reload(); },
+		             error: function() { alert('Oh noes!'); }, 
+		             async: false});
+	}
+    catch(err) {
+   	    alert(JSON.stringify(err));
+    }
+}
+
+async function uma_cancel_withdrawal(uma_address) {
+    web3 = new Web3(web3.currentProvider);
+    provider = new ethers.providers.Web3Provider(web3.currentProvider);
+    
+    var emp = new ethers.Contract(uma_address,
+                                  JSON.parse('<%=EMP_ABI.html_safe%>'),
+                                  provider.getSigner(0));
+	
+	await emp.cancelWithdrawal();	
+}
+
 function withdraw_collateral(pie, uma_address) {
 	try {
 		uma_withdrawal(uma_address);

@@ -250,9 +250,9 @@
   }
   
   async function getAvatar(ens_name) {
-    var ens = new ethers.Contract('#{ENS_PUBLIC_RESOLVER}',
-                                  JSON.parse('#{PUBLIC_RESOLVER_ABI.html_safe}'),
-                                  provider.getSigner(0));
+    const ens = new ethers.Contract('#{ENS_PUBLIC_RESOLVER}',
+                                    JSON.parse('#{PUBLIC_RESOLVER_ABI.html_safe}'),
+                                    provider.getSigner(0));
 
     // Thank you, ethers! Need to hash the name a certain way, and also convert to Bytes32
     const node = ethers.utils.namehash(ens_name);

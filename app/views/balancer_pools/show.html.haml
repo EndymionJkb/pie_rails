@@ -8,7 +8,6 @@
         .progress
           .progress_inner
             = hidden_field_tag :emp_creator, @empCreatorAddress
-            = hidden_field_tag :token_factory, @tokenFactoryAddress
             = hidden_field_tag :uma_price_feed, @price_feed_identifer
             - @abis.each do |coin, abi|
               = hidden_field_tag "#{coin}_abi", abi
