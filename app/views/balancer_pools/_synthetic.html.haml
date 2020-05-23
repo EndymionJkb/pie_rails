@@ -20,7 +20,7 @@
   - pie.stocks.each do |stock|
     %li= stock.display_name
 %hr
-- if !pool.uma_address.nil?
+- if pool.uma_address.nil?
   = link_to 'Create Synthetic', '#', :class => 'btn btn-primary', :onclick => "create_synthetic();"
 - else
   = link_to 'Synthetic Created', '#', :style => 'pointer-events: none;', :title => "Contract address: #{pool.uma_address}", :class => 'btn btn-primary'
