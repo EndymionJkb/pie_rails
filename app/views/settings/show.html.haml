@@ -11,7 +11,7 @@
           %input#proportions{:type => 'text', :readonly => 'true'}
           #slider-range
         %p         
-          %strong Crypto Focus
+          %strong Crypto Sector
           %br
           - Setting::CATEGORIES.each do |category|
             = radio_button_tag 'focus', category, category == @setting.focus

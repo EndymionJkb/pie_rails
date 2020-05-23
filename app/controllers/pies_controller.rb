@@ -211,16 +211,14 @@ class PiesController < ApplicationController
     @pie = Pie.find(params[:id])
     
     snap = YAML::load(@pie.uma_snapshot)
-
-    # They can't withdraw so much that the collateralization falls below the minimum!     
-    snap[:net_collateral_adjustment] -= params[:amount].to_i    
+    
+    # Clean up pool 
+    @pool = @pie.balancer_pool
+    snap[:net_collateral_adjustment] -= @pool.pending_withdrawal
     @collateralization, @progress_class, @total_value = @pie.compute_uma_collateralization(snap[:net_collateral_adjustment])
     
-    if @collateralization >= MIN_COLLATERALIZATION * 100
-      @pie.update_attribute(:uma_snapshot, YAML::dump(snap))
-    else
-      raise 'You cannot withdraw so much that the collateralization falls below the minimum!'
-    end
+    @pie.update_attribute(:uma_snapshot, YAML::dump(snap))
+    @pool.update_attributes(:withdrawal_available => nil, :pending_withdrawal => nil)
     
     respond_to do |format|       
       format.js do

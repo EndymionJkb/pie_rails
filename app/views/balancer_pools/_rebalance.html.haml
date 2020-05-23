@@ -48,9 +48,13 @@
         = number_field_tag :amount, nil, :min => 0
         - deposit_style = pie.uma_expired? ? 'pointer-events: none;' : ''
         - withdraw_style = pie.uma_expired? || pie.insufficient_collateral? ? 'pointer-events: none;' : ''
-        %br= link_to 'Deposit Collateral', '#', :style => deposit_style, :class => 'btn btn-primary', :onclick => "deposit_collateral(#{pie.id}); return false;"
-        %br= link_to 'Withdraw Collateral', '#', :style => withdraw_style, :class => 'btn btn-primary', :onclick => "withdraw_collateral(#{pie.id}); return false;"
-        %br= link_to 'Redeem Tokens', '#', :title => 'After expiration', :class => 'btn btn-primary', :onclick => "redeem_tokens(#{pie.id}); return false;"
+        %br= link_to 'Deposit Collateral', '#', :style => deposit_style, :class => 'btn btn-primary', :onclick => "deposit_collateral(#{pie.id}, '#{pool.uma_address}'); return false;"
+        - if pool.pending_withdrawal.nil?
+          %br= link_to 'Request Withdrawal', '#', :style => withdraw_style, :class => 'btn btn-primary', :onclick => "request_withdrawal(#{pool.id}, '#{pool.uma_address}'); return false;"
+        - else
+          - ready_style = Time.now > pool.withdrawal_available ? '' : 'pointer-events: none;'
+          %br= link_to "Withdraw Collateral (#{pool.pending_withdrawal})", '#', :style => ready_style, :class => 'btn btn-primary', :onclick => "withdraw_collateral(#{pie.id}, '#{pool.uma_address}'); window.location.reload(); return false;"          
+        %br= link_to 'Redeem Tokens', '#', :title => 'After expiration', :class => 'btn btn-primary', :onclick => "redeem_tokens(#{pie.id}, '#{pool.uma_address}'); return false;"
     .vl{:style => 'float:left'}
     .col-md-3
       %div{:style => 'float:right, display:inline-block'}
@@ -66,13 +70,121 @@
             - pool_config.each do |pc|
               %tr
                 %td{:title => "Denorm: #{pc[:denorm]}"}
-                  = number_field_tag "weight_#{pc[:coin]}", pc[:weight], :min => 2, :max => 98, :class => 'short_input balancer_input', :onchange => "update_weights();"
+                  - if pie.uma_collateral == pc[:coin]
+                    = number_field_tag "weight_#{pc[:coin]}", pc[:weight], :title => 'UMA collateral coin is managed through the synthetic', :disabled => 'disabled', :coin => "#{pc[:coin_addr]}", :class => 'short_input balancer_input'
+                  - else
+                    = number_field_tag "weight_#{pc[:coin]}", pc[:weight], :min => 2, :max => 98, :coin => "#{pc[:coin_addr]}", :class => 'short_input balancer_input', :onchange => "update_weights();"
                 %td= pc[:coin]
                 %td= number_with_delimiter(pc[:amount].round(2))
           #balancer_total
             Total: 100%
           - link_style = pool.finalized ? 'pointer-events: none;' : ''
           %hr
-          = link_to 'Adjust Weights', '#', :id => 'adjust_weights', :style => link_style, :class => 'btn btn-primary', :onclick => 'alert("Adjusting!");'
+          = link_to 'Adjust Weights', '#', :id => 'adjust_weights', :style => link_style, :class => 'btn btn-primary', :onclick => "adjust_weights('#{pool.bp_address}'); return false;"
           %br
-          %br= link_to 'Finalize', '#', :id => 'finalize', :style => link_style, :class => 'btn btn-primary', :onclick => "finalize_balancer(#{pool.id}); return false;"
+          %br= link_to 'Finalize', '#', :id => 'finalize', :style => link_style, :class => 'btn btn-primary', :onclick => "finalize_balancer('#{pool.bp_address}'); return false;"
+:javascript
+  async function finalize_balancer(bp_address) {
+      web3 = new Web3(web3.currentProvider);
+      provider = new ethers.providers.Web3Provider(web3.currentProvider);
+  
+      try {
+          const bPool = new ethers.Contract(bp_address,
+                                            JSON.parse('#{BPOOL_ABI.html_safe}'),
+                                            provider.getSigner(0));
+                                            
+          await bPool.finalize();
+          
+          // Tell the server we have finalized the pool
+          jQuery.ajax({url:"#{set_finalized_balancer_pool_path(pool.id)}.js",
+                       type: "PUT",
+                       success: function() { $('#adjust_weights').attr('style', 'pointer-events: none;');
+                                             $('#finalize').attr('style', 'pointer-events: none;');
+                                             alert("Balancer Pool finalized successfully"); },
+                       error: function() { alert('Oh noes!'); }, 
+                       async: false});
+      }
+      catch(err) {
+          alert(JSON.stringify(err));
+      }
+  }
+  
+  function adjust_weights(bp_address) {
+      web3 = new Web3(web3.currentProvider);
+      provider = new ethers.providers.Web3Provider(web3.currentProvider);
+
+      /* First, send the coins and weights to the server, 
+      **   which will calculate what will happen and return the plan
+      ** Present the plan in a confirmation dialog; if approved,
+      **   execute the plan
+      ** Adjusting weights means rebinding; if we're increasing the share, it will
+      **   transfer tokens from the wallet to the pool. If we're decreasing, it will
+      **   transfer from the pool back to the wallet
+      ** So if we're transferring tokens to the pool, need to approve them with amounts
+      ** The server sends back the human-readble plan, and also the set of addresses
+      **   and denorm values (it might not be all of them). If there is also an amount,
+      **   we need to approve the spend (if no amount, we'll be receiving)
+      ** If all succeeds, tell the server and it will update the BalancerPool object
+      */
+      var total = 0;
+      var coin_data = {};
+      
+      $('.balancer_input').each(function(index, coin) {
+          total += parseInt(coin.value);
+          coin_data[coin.attributes['coin'].value] = coin.value;
+      });
+      
+      if (100 == total) {
+        jQuery.ajax({url:"#{calculate_rebalance_balancer_pool_path(pool.id)}.js",
+                     data: {'coins': coin_data},
+                     type: "PUT",
+                     success: function(response) { rebind_balancer(JSON.parse(response)); },
+                     error: function() { alert('Oh noes!'); }, 
+                     async: false});          
+      }
+      else {
+        // Should be impossible!
+        alert("Weights do not add up to 100!");
+      }
+  }
+  
+  async function rebind_balancer(data) {
+      // Nothing to do, if there are no changes.
+      if ('' == data['plan']) {
+          alert("No changes detected.");
+          return;
+      }
+    
+      if (confirm("Updating will cause the following deposits/withdrawals:\n" + 
+                  data['plan'] + "\nOK to proceed?")) {
+          jQuery.ajax({url:"#{confirm_rebalance_balancer_pool_path(pool.id)}.js",
+                       type: "PUT",
+                       success: function() { alert("Balancer Pool updated successfully!"); },
+                       error: function() { alert('Oh noes!'); }, 
+                       async: false});          
+      }
+
+      const bPool = new ethers.Contract(bpAddress,
+                                        JSON.parse('#{BPOOL_ABI.html_safe}'),
+                                        provider.getSigner(0));
+      
+      // Iterate over each component of the pool
+      var slices = [];
+      // Need to extract first, since each() functions are synchronous
+      $('.balancer_input').each(function(bind) {
+          slices.push(bind);
+      });
+      
+      for (const bind in slices) {
+          // Approve token
+          var abi = $('#' + bind.abi).val();
+          
+          // Approve each slice
+          const slice = new ethers.Contract(bind.coin_addr,
+                                            JSON.parse(abi),
+                                            provider.getSigner(0));                                                            
+          await slice.approve(bPool, bind.amount_wei);
+          
+          await bPool.bind(bind.coin_addr, bind.amount_wei, bind.denorm);
+      };
+  }

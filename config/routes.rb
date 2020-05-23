@@ -31,6 +31,10 @@ Rails.application.routes.draw do
       put 'set_uma_address'
       put 'set_bp_address'
       put 'set_swaps_completed'
+      put 'set_finalized'
+      put 'calculate_rebalance'
+      put 'confirm_rebalance'
+      put 'request_withdrawal'
     end
   end
     

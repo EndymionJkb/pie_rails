@@ -29,8 +29,22 @@ class Setting < ApplicationRecord
   
   CRYPTO_COLLATERAL = ['ETH']
   STABLE_COLLATERAL = ['DAI', 'USDC']
-  AAVE_COLLATERAL = ['aETH', 'aDAI', 'aUSDC', 'aWBTC', 'aLEND']
+  AAVE_COLLATERAL = ['aETH', 'aDAI', 'aUSDC', 'aLEND']
   
+  # Subtlety here - we aren't tracking which coin is collateral all the way through
+  #   to the BalancerPool (i.e., pie "needs" that go into the BalanceCalculator could
+  #   potentially conflate uma collateral with a regular crypto holding! So we have to
+  #   either add tracking so that it does follow it all the way through, or disallow
+  #   using anything for UMA_COLLATERAL that could also be a crypto. Taking the second
+  #   approach for now.
+  # The issue arises if you try to adjust the balancer after creation.
+  #   The synthetic holding isn't like the others - there is a collateralization requirement,
+  #   so you can't really calculate changes to it. So, don't allow editing the 
+  #   uma collateral coin in the balancer. Since there is no tracking through, the only way
+  #   we know what it is is by comparing it to the pie.uma_collateral field - hence the
+  #   requirement that we don't conflate it with another holding of the same coin.
+  # Note that the BalanceCalculator actually handles this case.
+  #
   ALLOWED_UMA_COLLATERAL = CRYPTO_COLLATERAL + STABLE_COLLATERAL + AAVE_COLLATERAL
   DEFAULT_COLLATERAL = 'aDAI'
   

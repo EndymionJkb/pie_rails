@@ -16,7 +16,12 @@ class PriceHistory < ApplicationRecord
   validates_numericality_of :price, :greater_than => 0
   
   def self.latest_price(coin)
-    PriceHistory.where(:coin => coin).order('date DESC').first.price rescue nil
+    if Setting::STABLE_COINS.include?(coin)
+      1.0
+    else
+      # If it fails, it's probably a stable aToken or something
+      PriceHistory.where(:coin => coin).order('date DESC').first.price rescue 1.0
+    end
   end
   
   def self.compute_pct_change

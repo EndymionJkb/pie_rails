@@ -29,7 +29,7 @@
       try {
         for (const swap of JSON.parse(transforms)) {
             if ('AAVE' == swap.method) {              
-                //aave_swap(swap, client_address);
+                aave_swap(swap, client_address);
             }
             else {
                 uniswap(swap, client_address, deadline);
@@ -43,7 +43,7 @@
                      async: false});
       }
       catch(err) {
-          alert(err);
+          alert(JSON.stringify(err));
       }
     }
     
@@ -67,7 +67,7 @@
                                               provider.getSigner(0));
                                               
       if ('#{AAVE_ETH_ADDRESS}' == swap.src_addr) {
-          // We are sending ETH to get the dest coins
+          // We are sending ETH to get aETH
           await lendingPool.deposit(swap.src_addr, swap.amount, #{AAVE_REFERRAL_CODE},
                                     {value: swap.amount});
       }
@@ -91,7 +91,7 @@
                                           JSON.parse('#{FACTORY_ABI.html_safe}'),
                                           provider.getSigner(0));
 
-      // Ensure the pair exists (it probably already does)
+      // Ensure the pair exists
       const pairAddress = await factory.createPair(swap.src_addr, swap.dest_addr);
 
       const router = new ethers.Contract('#{UniswapV2Router01}',
@@ -106,6 +106,7 @@
                                             provider.getSigner(0));                                     
       await tokens_in.approve(router.address, swap.amount);
       
+      // Amount to receive has been adjusted in the engine for slippage (5% default)
       await router.swapExactTokensForTokens(swap.amount,
                                             swap.amount_to_receive,
                                             path,

@@ -2,15 +2,18 @@
 #
 # Table name: balancer_pools
 #
-#  id              :bigint           not null, primary key
-#  pie_id          :bigint
-#  uma_address     :string(42)
-#  bp_address      :string(42)
-#  allocation      :text
-#  created_at      :datetime         not null
-#  updated_at      :datetime         not null
-#  swaps_completed :boolean          default(FALSE), not null
-#  finalized       :boolean          default(FALSE), not null
+#  id                   :bigint           not null, primary key
+#  pie_id               :bigint
+#  uma_address          :string(42)
+#  bp_address           :string(42)
+#  allocation           :text
+#  created_at           :datetime         not null
+#  updated_at           :datetime         not null
+#  swaps_completed      :boolean          default(FALSE), not null
+#  finalized            :boolean          default(FALSE), not null
+#  pending_changes      :text
+#  withdrawal_available :datetime
+#  pending_withdrawal   :integer
 #
 require 'rails_helper'
 
@@ -27,6 +30,9 @@ RSpec.describe BalancerPool, type: :model do
     expect(pool).to respond_to(:balancer_url)
     expect(pool).to respond_to(:swaps_completed)
     expect(pool).to respond_to(:finalized)
+    expect(pool).to respond_to(:pending_changes)
+    expect(pool).to respond_to(:withdrawal_available)
+    expect(pool).to respond_to(:pending_withdrawal)
   end
   
   it { should be_valid }
@@ -55,5 +61,13 @@ RSpec.describe BalancerPool, type: :model do
     before { pool.finalized = nil }
     
     it { should_not be_valid }
+  end
+  
+  describe "Invalid withdrawal" do
+    [-2, 0, 22.8, 'abc'].each do |w|
+      before { pool.pending_withdrawal = w }
+      
+      it { should_not be_valid }
+    end
   end
 end

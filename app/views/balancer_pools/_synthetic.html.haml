@@ -21,7 +21,7 @@
     %li= stock.display_name
 %hr
 - if !pool.uma_address.nil?
-  = link_to 'Create Synthetic', '#', :title => 'Does this work?', :class => 'btn btn-primary', :onclick => "create_synthetic();"
+  = link_to 'Create Synthetic', '#', :class => 'btn btn-primary', :onclick => "create_synthetic();"
 - else
   = link_to 'Synthetic Created', '#', :style => 'pointer-events: none;', :title => "Contract address: #{pool.uma_address}", :class => 'btn btn-primary'
   %br
@@ -50,7 +50,7 @@
   
   async function create_emp(empCreator, priceFeed, tokenFactoryAddress) {
       const params = { expirationTimestamp: "#{pie.uma_expiry_date}",
-                       collateralAddress: "#{uma_collateral_obj.address}",
+                       collateralAddress: "#{uma_collateral[:address]}",
                        priceFeedIdentifier: priceFeed,
                        syntheticName: "#{pie.uma_token_name}",
                        syntheticSymbol: "#{pie.uma_token_symbol}",
@@ -60,13 +60,27 @@
                        disputerDisputeRewardPct: {'rawValue': web3.utils.toWei("#{DISPUTER_DISPUTE_REWARD_PCT}")},
                        minSponsorTokens: {'rawValue': web3.utils.toWei("#{MIN_SPONSOR_TOKENS}")}};
                        
-      const txResult = await empCreator.createExpiringMultiParty(params);
-      const empAddress = txResult.logs[0].args.expiringMultiPartyAddress;
-            
-      // Tell the server the new emp address
-      jQuery.ajax({url:"#{set_uma_address_balancer_pool_path(pool.id)}.js",
-                   data: {'uma_address': empAddress},
-                   type: "PUT",
-                   error: function() { alert('Oh noes!'); }, 
-                   async: false});
+      try {
+        const txResult = await empCreator.createExpiringMultiParty(params);
+        const empAddress = txResult.logs[0].args.expiringMultiPartyAddress;
+        
+        // Now get the ExpiringMultiParty contract we just deployed
+        var emp = new ethers.Contract(empAddress,
+                                      JSON.parse('#{EMP_ABI.html_safe}'),
+                                      provider.getSigner(0));
+        
+        // And create the position
+        await emp.create({rawValue: web3.utils.toWei("#{uma_collateral[:collateral_amount]}")},
+                         {rawValue: web3.utils.toWei("#{uma_collateral[:synthetic_amount]}")});
+              
+        // Finally, the server the new emp address
+        jQuery.ajax({url:"#{set_uma_address_balancer_pool_path(pool.id)}.js",
+                     data: {'uma_address': empAddress},
+                     type: "PUT",
+                     error: function() { alert('Oh noes!'); }, 
+                     async: false});
+      }
+      catch (err) {
+          alert(JSON.stringify(err));
+      }
   }

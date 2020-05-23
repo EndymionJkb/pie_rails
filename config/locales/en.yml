@@ -43,7 +43,7 @@ en:
   backtest_title: 'Backtest'
   backtest: "Backtest '%{name}'"
   balancer_pool: 'Balancer Pool'
-  create_balancer: 'Create Balancer'
+  create_balancer: 'Create Portfolio'
   design_balancer: 'Design Balancer Pool'
   design_instructions: 'Here the system will review your account balances and design an optimal process for funding your pie'
   monitor_balancer: 'Monitor Balancer'
@@ -54,7 +54,7 @@ en:
   need_ptoken: 'You need %{token} tokens!'
   trust_me: "Trust me! Send %{amount} BTC to"
   go_ptokens: 'Go to the pTokens site'
-  create_pool: 'Create Pool!'
+  create_pool: 'Create Balanced Porfolio!'
   investment: 'Initial investment'
   about: 'About'
   what_is: 'What is My DeFi Pie?'

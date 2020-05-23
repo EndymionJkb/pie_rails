@@ -253,6 +253,24 @@ class Pie < ApplicationRecord
     @collateralization < MIN_COLLATERALIZATION * 100
   end
   
+  def initialize_uma_snapshot(investment)
+    total_investment = investment * self.pct_equities.to_f / 100.0
+    snapshot = {:investment => total_investment, :net_collateral_adjustment => 0, :slices => Hash.new}
+    per_slice = total_investment / (stocks.count + etfs.count)
+    
+    etfs.each do |etf|
+      price = PriceHistory.latest_price(etf.ticker)
+      snapshot[:slices][etf.ticker] = {:price => price, :shares => per_slice / price, :name => etf.ticker}
+    end
+    
+    stocks.each do |stock|
+      price = PriceHistory.latest_price(stock.cca_id)
+      snapshot[:slices][stock.cca_id] = {:price => price, :shares => per_slice / price, :name => stock.company_name}
+    end
+    
+    self.update_attribute(:uma_snapshot, YAML::dump(snapshot))
+  end
+
 private
   def build_primary_series
     # Primary series is Gold, Crypto, Cash, Equities

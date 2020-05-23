@@ -10,7 +10,7 @@
       %td= number_with_delimiter(pc[:amount].round(2))
 %hr
 - if !pool.bp_address.nil?
-  = link_to 'Create Balancer', '#', :class => 'btn btn-primary', :onclick => 'createBalancer("#{pool_config.to_json}", "#{client_address}");'
+  = link_to 'Create Balancer', '#', :class => 'btn btn-primary', :onclick => "createBalancer('#{pool_config.to_json}', '#{client_address}');"
 - else
   = link_to 'Balancer Created', '#', :style => 'pointer-events: none;', :title => "Contract address: #{pool.bp_address}", :class => 'btn btn-primary'
   %br
@@ -23,7 +23,7 @@
   
   // We have the transforms array, where each
   //   element has method, src, dest, amount
-  async function createBalancer(pool, client_address) {
+  async function createBalancer(pool_config, client_address) {
       web3 = new Web3(web3.currentProvider);
       provider = new ethers.providers.Web3Provider(web3.currentProvider);
       
@@ -40,6 +40,7 @@
                                             JSON.parse('#{BPOOL_ABI.html_safe}'),
                                             provider.getSigner(0));
           
+          // Iterate over each component of the pool
           for (const bind of JSON.parse(pool_config)) {
               // Approve token
               var abi = $('#' + bind.coin + '_abi').val();
@@ -59,12 +60,12 @@
           
           // Tell the server the new Balancer Pool address
           jQuery.ajax({url:"#{set_bp_address_balancer_pool_path(pool.id)}.js",
-                       data: {'bp_address': bPool.address},
+                       data: {'bp_address': bpAddress},
                        type: "PUT",
                        error: function() { alert('Oh noes!'); }, 
                        async: false});          
       }
       catch(err) {
-          alert(err);
+          alert(JSON.stringify(err));
       }      
   }
