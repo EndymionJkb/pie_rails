@@ -43,7 +43,7 @@ group :development do
   gem 'rb-readline', '0.5.5'
   gem 'annotate', '3.1.1'
   gem 'haml-rails', '2.0.1'
-  gem 'better_errors', '2.6.0'
+  gem 'better_errors', '2.8.0'
   gem 'binding_of_caller', '0.8.0'
 end
 
