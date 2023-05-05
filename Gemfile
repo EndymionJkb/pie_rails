@@ -16,7 +16,7 @@ gem 'uglifier', '4.2.0'
 # gem 'mini_racer', platforms: :ruby
 gem 'devise', '4.7.1'
 gem 'bcrypt', '3.1.13'
-gem 'jquery-rails', '4.3.5'
+gem 'jquery-rails', '4.4.0'
 gem 'jquery-ui-rails', '6.0.1'
 gem 'bootstrap', '4.4.1'
 gem 'haml', '5.1.2'
